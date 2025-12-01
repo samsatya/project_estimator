@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= content_for(:title) || "Project Estimator" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%= yield :head %>
+
+    <%# Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!) %>
+    <%#= tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>
+
+    <link rel="icon" href="/icon.png" type="image/png">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon.png">
+
+    <%# Includes all stylesheet files in app/assets/stylesheets %>
+    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+
+  <body class="bg-gray-50">
+    <% if user_signed_in? %>
+      <nav class="bg-white shadow-sm border-b">
+        <div class="container mx-auto px-4">
+          <div class="flex justify-between items-center h-16">
+            <div class="flex space-x-8">
+              <%= link_to "Projects", projects_path, class: "text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium" %>
+              <%= link_to "Teams", teams_path, class: "text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium" %>
+              <% if current_user&.manager? %>
+                <%= link_to "Team Members", team_members_path, class: "text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium" %>
+                <%= link_to "Capacity Reports", capacity_reports_path, class: "text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium" %>
+              <% end %>
+            </div>
+            <div class="flex items-center space-x-4">
+              <div class="flex items-center space-x-2">
+                <%= link_to "My Holidays", team_member_holidays_path(current_user), class: "text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium" %>
+                <%= link_to "My Time Off", team_member_time_offs_path(current_user), class: "text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium" %>
+              </div>
+              <span class="text-sm text-gray-600"><%= current_user.name %></span>
+              <%= button_to "Sign out", destroy_user_session_path, method: :delete, class: "text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium" %>
+            </div>
+          </div>
+        </div>
+      </nav>
+    <% end %>
+
+    <% unless devise_controller? %>
+      <% if notice %>
+        <div class="bg-green-50 border-l-4 border-green-400 p-4 m-4">
+          <p class="text-green-700"><%= notice %></p>
+        </div>
+      <% end %>
+
+      <% if alert %>
+        <div class="bg-red-50 border-l-4 border-red-400 p-4 m-4">
+          <p class="text-red-700"><%= alert %></p>
+        </div>
+      <% end %>
+
+      <main class="container mx-auto px-4 py-8">
+        <%= yield %>
+      </main>
+    <% else %>
+      <main>
+        <%= yield %>
+      </main>
+    <% end %>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  </body>
+</html>

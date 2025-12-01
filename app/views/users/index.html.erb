@@ -1,0 +1,52 @@
+<div class="w-full">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold text-gray-900">Team Members</h1>
+    <%= link_to "New Team Member", new_team_member_path, class: "bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg" %>
+  </div>
+
+  <% if @users.any? %>
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Primary Strength</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Secondary Strength</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Capacity (hrs/week)</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <% @users.each do |user| %>
+            <tr>
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"><%= user.name %></td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><%= user.email %></td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><%= user.primary_strength %></td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><%= user.secondary_strength %></td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><%= user.capacity || "N/A" %></td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <span class="px-2 py-1 text-xs font-semibold rounded-full <%= user.manager? ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800' %>">
+                  <%= user.role.humanize %>
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <%= link_to "Edit", edit_team_member_path(user), class: "text-blue-600 hover:text-blue-900 mr-2" %>
+                <%= link_to "Holidays", team_member_holidays_path(user), class: "text-green-600 hover:text-green-900 mr-2" %>
+                <%= link_to "Time Off", team_member_time_offs_path(user), class: "text-orange-600 hover:text-orange-900 mr-2" %>
+                <%= link_to "Delete", team_member_path(user), method: :delete, data: { confirm: "Are you sure?" }, class: "text-red-600 hover:text-red-900" %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <div class="bg-white rounded-lg shadow-md p-12 text-center">
+      <p class="text-gray-600 mb-4">No team members yet. Add your first team member!</p>
+      <%= link_to "Add Team Member", new_team_member_path, class: "bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg" %>
+    </div>
+  <% end %>
+</div>
+

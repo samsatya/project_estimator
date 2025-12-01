@@ -1,0 +1,108 @@
+<div class="w-full">
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900">Capacity Report: <%= @user.name %></h1>
+      <p class="text-gray-600 mt-2">
+        Period: <%= @start_date.strftime("%B %d, %Y") %> - <%= @end_date.strftime("%B %d, %Y") %>
+      </p>
+    </div>
+    <%= link_to "Back to Reports", capacity_reports_path(start_date: @start_date, end_date: @end_date), class: "bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg" %>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <p class="text-sm text-gray-600 mb-2">Working Days</p>
+      <p class="text-3xl font-bold text-gray-900"><%= @breakdown[:working_days] %></p>
+    </div>
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <p class="text-sm text-gray-600 mb-2">Available Days</p>
+      <p class="text-3xl font-bold text-green-600"><%= @breakdown[:available_days] %></p>
+    </div>
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <p class="text-sm text-gray-600 mb-2">Available Hours</p>
+      <p class="text-3xl font-bold text-blue-600"><%= @breakdown[:available_hours] %>h</p>
+    </div>
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <p class="text-sm text-gray-600 mb-2">Available Story Points</p>
+      <p class="text-3xl font-bold text-purple-600"><%= @breakdown[:available_story_points] %></p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <h2 class="text-xl font-semibold mb-4">Breakdown</h2>
+      <div class="space-y-3">
+        <div class="flex justify-between">
+          <span class="text-gray-600">Working Days:</span>
+          <span class="font-semibold"><%= @breakdown[:working_days] %></span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-600">Weekly Capacity:</span>
+          <span class="font-semibold"><%= @breakdown[:weekly_capacity] %> hours/week</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-600">Holiday Days:</span>
+          <span class="font-semibold text-orange-600"><%= @breakdown[:holiday_days] %></span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-600">Time Off Days:</span>
+          <span class="font-semibold text-red-600"><%= @breakdown[:time_off_days] %></span>
+        </div>
+        <div class="flex justify-between border-t pt-3">
+          <span class="text-gray-900 font-semibold">Total Unavailable:</span>
+          <span class="font-bold text-red-600"><%= @breakdown[:holiday_days] + @breakdown[:time_off_days] %> days</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <h2 class="text-xl font-semibold mb-4">Holidays in Period</h2>
+      <% if @holidays.any? %>
+        <ul class="space-y-2">
+          <% @holidays.each do |holiday| %>
+            <li class="flex justify-between items-center border-b pb-2">
+              <div>
+                <span class="font-medium"><%= holiday.name %></span>
+                <span class="text-sm text-gray-500 ml-2"><%= holiday.date.strftime("%B %d, %Y") %></span>
+              </div>
+            </li>
+          <% end %>
+        </ul>
+      <% else %>
+        <p class="text-gray-500 text-sm">No holidays in this period</p>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-lg shadow-md p-6">
+    <h2 class="text-xl font-semibold mb-4">Time Off in Period</h2>
+    <% if @time_offs.any? %>
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Start Date</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">End Date</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Days</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reason</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <% @time_offs.each do |time_off| %>
+              <tr>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><%= time_off.leave_type %></td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><%= time_off.start_date.strftime("%B %d, %Y") %></td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><%= time_off.end_date.strftime("%B %d, %Y") %></td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><%= time_off.days_count %></td>
+                <td class="px-6 py-4 text-sm text-gray-500"><%= time_off.reason %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <p class="text-gray-500 text-sm">No time off in this period</p>
+    <% end %>
+  </div>
+</div>

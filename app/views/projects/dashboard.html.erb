@@ -1,0 +1,211 @@
+<div class="w-full">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold text-gray-900">Dashboard: <%= @project.name %></h1>
+    <div class="flex space-x-2">
+      <%= link_to "Export to Excel", export_project_path(@project, format: :xlsx), class: "bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg" %>
+      <%= link_to "Back to Project", @project, class: "bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg" %>
+    </div>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <p class="text-sm text-gray-600 mb-2">Total Story Points</p>
+      <p class="text-3xl font-bold text-gray-900"><%= @breakdown[:story_points] %></p>
+    </div>
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <p class="text-sm text-gray-600 mb-2">Total Hours</p>
+      <p class="text-3xl font-bold text-gray-900"><%= @breakdown[:total_hours] %></p>
+    </div>
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <p class="text-sm text-gray-600 mb-2">Estimated Days</p>
+      <p class="text-3xl font-bold text-gray-900"><%= @breakdown[:estimated_days] %></p>
+    </div>
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <p class="text-sm text-gray-600 mb-2">Estimated Weeks</p>
+      <p class="text-3xl font-bold text-gray-900"><%= @breakdown[:estimated_weeks] %></p>
+    </div>
+  </div>
+
+  <!-- Breakdown -->
+  <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+    <h2 class="text-2xl font-bold text-gray-900 mb-4">Estimation Breakdown</h2>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div>
+        <p class="text-sm text-gray-600">Story Hours</p>
+        <p class="text-xl font-semibold text-gray-900"><%= @breakdown[:story_hours] %>h</p>
+      </div>
+      <div>
+        <p class="text-sm text-gray-600">PR Review</p>
+        <p class="text-xl font-semibold text-gray-900"><%= @breakdown[:pr_review_hours] %>h</p>
+      </div>
+      <div>
+        <p class="text-sm text-gray-600">Product Testing</p>
+        <p class="text-xl font-semibold text-gray-900"><%= @breakdown[:product_testing_hours] %>h</p>
+      </div>
+      <div>
+        <p class="text-sm text-gray-600">Business Testing</p>
+        <p class="text-xl font-semibold text-gray-900"><%= @breakdown[:business_testing_hours] %>h</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts Row -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <!-- Story Points by Epic -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <h2 class="text-xl font-bold text-gray-900 mb-4">Story Points by Epic</h2>
+      <canvas id="pointsByEpicChart" height="300"></canvas>
+    </div>
+
+    <!-- Team Member Workload -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <h2 class="text-xl font-bold text-gray-900 mb-4">Team Member Workload</h2>
+      <canvas id="workloadChart" height="300"></canvas>
+    </div>
+  </div>
+
+  <!-- Skill Utilization -->
+  <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+    <h2 class="text-xl font-bold text-gray-900 mb-4">Skill Utilization</h2>
+    <canvas id="skillChart" height="200"></canvas>
+  </div>
+
+  <!-- Team Member Details Table -->
+  <div class="bg-white rounded-lg shadow-md overflow-hidden">
+    <h2 class="text-xl font-bold text-gray-900 p-6 border-b">Team Member Details</h2>
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Story Points</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Story Hours</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Subtask Hours</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total Hours</th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-200">
+        <% @by_team_member.each do |user_id, data| %>
+          <tr>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"><%= data[:user].name %></td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><%= data[:story_points] %></td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><%= data[:story_hours] %>h</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><%= data[:subtask_hours] %>h</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900"><%= data[:total_hours] %>h</td>
+          </tr>
+        <% end %>
+        <% if @by_team_member.empty? %>
+          <tr>
+            <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">No team members assigned to this project</td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  // Story Points by Epic Chart
+  <% if @by_epic.any? %>
+  const pointsByEpicCtx = document.getElementById('pointsByEpicChart').getContext('2d');
+  new Chart(pointsByEpicCtx, {
+    type: 'bar',
+    data: {
+      labels: <%= raw @by_epic.map { |e| e[:epic].name }.to_json %>,
+      datasets: [{
+        label: 'Story Points',
+        data: <%= raw @by_epic.map { |e| e[:points] }.to_json %>,
+        backgroundColor: 'rgba(59, 130, 246, 0.5)',
+        borderColor: 'rgba(59, 130, 246, 1)',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  });
+  <% else %>
+  document.getElementById('pointsByEpicChart').parentElement.innerHTML = '<p class="text-gray-500 text-center py-8">No epics with stories yet</p>';
+  <% end %>
+
+  // Team Member Workload Chart
+  <% if @by_team_member.any? %>
+  const workloadCtx = document.getElementById('workloadChart').getContext('2d');
+  new Chart(workloadCtx, {
+    type: 'bar',
+    data: {
+      labels: <%= raw @by_team_member.map { |_, d| d[:user].name }.to_json %>,
+      datasets: [{
+        label: 'Total Hours',
+        data: <%= raw @by_team_member.map { |_, d| d[:total_hours] }.to_json %>,
+        backgroundColor: 'rgba(34, 197, 94, 0.5)',
+        borderColor: 'rgba(34, 197, 94, 1)',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  });
+  <% else %>
+  document.getElementById('workloadChart').parentElement.innerHTML = '<p class="text-gray-500 text-center py-8">No team members assigned yet</p>';
+  <% end %>
+
+  // Skill Utilization Chart
+  <% if @by_team_member.any? %>
+  const skillData = {};
+  <% @by_team_member.each do |_, data| %>
+    const primarySkill = '<%= data[:user].primary_strength %>';
+    const secondarySkill = '<%= data[:user].secondary_strength %>';
+    skillData[primarySkill] = (skillData[primarySkill] || 0) + <%= data[:total_hours] %>;
+    skillData[secondarySkill] = (skillData[secondarySkill] || 0) + (<%= data[:total_hours] %> * 0.5);
+  <% end %>
+
+  const skillCtx = document.getElementById('skillChart').getContext('2d');
+  new Chart(skillCtx, {
+    type: 'doughnut',
+    data: {
+      labels: Object.keys(skillData),
+      datasets: [{
+        data: Object.values(skillData),
+        backgroundColor: [
+          'rgba(59, 130, 246, 0.5)',
+          'rgba(34, 197, 94, 0.5)',
+          'rgba(251, 191, 36, 0.5)',
+          'rgba(239, 68, 68, 0.5)',
+          'rgba(168, 85, 247, 0.5)',
+          'rgba(236, 72, 153, 0.5)'
+        ],
+        borderColor: [
+          'rgba(59, 130, 246, 1)',
+          'rgba(34, 197, 94, 1)',
+          'rgba(251, 191, 36, 1)',
+          'rgba(239, 68, 68, 1)',
+          'rgba(168, 85, 247, 1)',
+          'rgba(236, 72, 153, 1)'
+        ],
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false
+    }
+  });
+  <% else %>
+  document.getElementById('skillChart').parentElement.innerHTML = '<p class="text-gray-500 text-center py-8">No team members assigned yet</p>';
+  <% end %>
+</script>
+

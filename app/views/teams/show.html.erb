@@ -1,0 +1,63 @@
+<div class="w-full">
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900"><%= @team.name %></h1>
+      <p class="text-gray-600 mt-2"><%= @team.description %></p>
+    </div>
+    <div class="flex space-x-2">
+      <%= link_to "Edit", edit_team_path(@team), class: "bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg" %>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <h2 class="text-xl font-semibold mb-4">Team Members</h2>
+      <% if @team.users.any? %>
+        <ul class="space-y-2 mb-4">
+          <% @team.users.each do |user| %>
+            <li class="flex justify-between items-center border-b pb-2">
+              <div>
+                <span class="font-medium"><%= user.name %></span>
+                <span class="text-sm text-gray-500 ml-2">(<%= user.primary_strength %>/<%= user.secondary_strength %>)</span>
+              </div>
+              <%= button_to "Remove", remove_member_team_path(@team, user_id: user.id), method: :delete, class: "text-red-600 hover:text-red-800 text-sm" %>
+            </li>
+          <% end %>
+        </ul>
+      <% else %>
+        <p class="text-gray-500 text-sm mb-4">No team members yet</p>
+      <% end %>
+      
+      <% if @available_users.any? %>
+        <%= form_with url: add_member_team_path(@team), method: :post, local: true, class: "flex gap-2" do |form| %>
+          <%= form.select :user_id, options_from_collection_for_select(@available_users, :id, :name), { prompt: "Select team member" }, { class: "flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500", required: true } %>
+          <%= form.submit "Add", class: "bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg" %>
+        <% end %>
+      <% else %>
+        <p class="text-gray-500 text-sm">All users are already in this team</p>
+      <% end %>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <h2 class="text-xl font-semibold mb-4">Team Skills Summary</h2>
+      <% skills = {} %>
+      <% @team.users.each do |user| %>
+        <% skills[user.primary_strength] = (skills[user.primary_strength] || 0) + 1 %>
+        <% skills[user.secondary_strength] = (skills[user.secondary_strength] || 0) + 0.5 %>
+      <% end %>
+      <% if skills.any? %>
+        <ul class="space-y-2">
+          <% skills.sort_by { |_, count| -count }.each do |skill, count| %>
+            <li class="flex justify-between items-center">
+              <span class="font-medium"><%= skill %></span>
+              <span class="text-sm text-gray-600"><%= count.round(1) %> members</span>
+            </li>
+          <% end %>
+        </ul>
+      <% else %>
+        <p class="text-gray-500 text-sm">Add team members to see skill summary</p>
+      <% end %>
+    </div>
+  </div>
+</div>
+

@@ -1,0 +1,33 @@
+<div class="w-full">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold text-gray-900">Teams</h1>
+    <%= link_to "New Team", new_team_path, class: "bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg" %>
+  </div>
+
+  <% if @teams.any? %>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <% @teams.each do |team| %>
+        <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+          <h2 class="text-xl font-semibold text-gray-900 mb-2">
+            <%= link_to team.name, team, class: "hover:text-blue-600" %>
+          </h2>
+          <p class="text-gray-600 text-sm mb-4 line-clamp-2"><%= team.description %></p>
+          <div class="flex items-center justify-between text-sm text-gray-500 mb-4">
+            <span><%= pluralize(team.users.count, 'member') %></span>
+          </div>
+          <div class="flex space-x-2">
+            <%= link_to "View", team, class: "text-blue-600 hover:text-blue-800 text-sm font-medium" %>
+            <%= link_to "Edit", edit_team_path(team), class: "text-gray-600 hover:text-gray-800 text-sm font-medium" %>
+            <%= link_to "Delete", team, method: :delete, data: { confirm: "Are you sure?" }, class: "text-red-600 hover:text-red-800 text-sm font-medium" %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="bg-white rounded-lg shadow-md p-12 text-center">
+      <p class="text-gray-600 mb-4">No teams yet. Create your first team to get started!</p>
+      <%= link_to "Create Team", new_team_path, class: "bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg" %>
+    </div>
+  <% end %>
+</div>
+
