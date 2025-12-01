@@ -9,6 +9,11 @@ class CapacityCalculator
     (@start_date..@end_date).count { |date| date.wday.between?(1, 5) } # Monday to Friday
   end
 
+  def global_holiday_days_count
+    # Count global holidays on working days
+    GlobalHoliday.where(date: @start_date..@end_date).count { |gh| gh.date.wday.between?(1, 5) }
+  end
+
   def available_days
     working_days = working_days_count
     holiday_days = holiday_days_count
@@ -26,8 +31,18 @@ class CapacityCalculator
   end
 
   def holiday_days_count
-    # Only count holidays that fall on working days
-    @user.holidays.where(date: @start_date..@end_date).count { |holiday| holiday.date.wday.between?(1, 5) }
+    # Count user-specific holidays
+    user_holidays = @user.holidays.where(date: @start_date..@end_date).count { |holiday| holiday.date.wday.between?(1, 5) }
+    
+    # Count global holidays (that don't overlap with user holidays)
+    global_holidays = GlobalHoliday.where(date: @start_date..@end_date)
+    global_holiday_days = global_holidays.count do |gh|
+      is_working_day = gh.date.wday.between?(1, 5)
+      not_user_holiday = !@user.holidays.exists?(date: gh.date)
+      is_working_day && not_user_holiday
+    end
+    
+    user_holidays + global_holiday_days
   end
 
   def time_off_days_count
@@ -45,6 +60,8 @@ class CapacityCalculator
   def breakdown
     total_calendar_days = (@end_date - @start_date).to_i + 1
     working_days = working_days_count
+    global_holiday_days = global_holiday_days_count
+    user_holiday_days = @user.holidays.where(date: @start_date..@end_date).count { |h| h.date.wday.between?(1, 5) }
     holiday_days = holiday_days_count
     time_off_days = time_off_days_count
     available_days = working_days - holiday_days - time_off_days
@@ -56,6 +73,8 @@ class CapacityCalculator
       period_end: @end_date,
       total_calendar_days: total_calendar_days,
       working_days: working_days,
+      global_holiday_days: global_holiday_days,
+      user_holiday_days: user_holiday_days,
       holiday_days: holiday_days,
       time_off_days: time_off_days,
       available_days: available_days,
@@ -64,5 +83,6 @@ class CapacityCalculator
       available_story_points: (available_hours / 8.0).round(2)
     }
   end
+end
 end
 

@@ -1,0 +1,98 @@
+<div class="max-w-4xl mx-auto">
+  <div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-900 mb-2">Bulk Upload Global Holidays</h1>
+    <p class="text-gray-600">Upload multiple global holidays at once using a CSV file</p>
+  </div>
+
+  <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+    <h2 class="text-lg font-semibold text-blue-900 mb-2">📋 CSV Format Instructions</h2>
+    <div class="text-sm text-blue-800 space-y-2">
+      <p><strong>Required Columns:</strong></p>
+      <ul class="list-disc list-inside ml-4 space-y-1">
+        <li><strong>Date</strong> - Date in YYYY-MM-DD format (e.g., 2024-12-25)</li>
+        <li><strong>Name</strong> - Name of the holiday (required)</li>
+      </ul>
+      <p class="mt-3"><strong>Optional Columns:</strong></p>
+      <ul class="list-disc list-inside ml-4 space-y-1">
+        <li><strong>Description</strong> - Description of the holiday</li>
+      </ul>
+      <p class="mt-3"><strong>Notes:</strong></p>
+      <ul class="list-disc list-inside ml-4 space-y-1">
+        <li>If a holiday with the same date already exists, it will be updated (not duplicated)</li>
+        <li>Dates can be in any year</li>
+        <li>Weekend holidays are allowed but won't affect capacity calculations</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-xl font-semibold text-gray-900">Upload CSV File</h2>
+      <%= link_to "Download Template", download_template_global_holidays_path, 
+          class: "bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg text-sm" %>
+    </div>
+
+    <% if @errors&.any? %>
+      <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+        <h3 class="text-lg font-semibold text-red-900 mb-2">Errors:</h3>
+        <ul class="list-disc list-inside text-sm text-red-800 space-y-1">
+          <% @errors.each do |error| %>
+            <li><%= error %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <%= form_with url: process_bulk_upload_global_holidays_path, 
+                  method: :post, 
+                  multipart: true,
+                  local: true,
+                  class: "space-y-4" do |form| %>
+      <div>
+        <%= form.label :csv_file, "Select CSV File", class: "block text-sm font-medium text-gray-700 mb-2" %>
+        <%= form.file_field :csv_file, 
+                            accept: ".csv,text/csv",
+                            required: true,
+                            class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" %>
+        <p class="mt-1 text-sm text-gray-500">Only CSV files are supported</p>
+      </div>
+
+      <div class="flex space-x-4">
+        <%= form.submit "Upload and Import", class: "bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg" %>
+        <%= link_to "Cancel", global_holidays_path, class: "bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg" %>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="bg-gray-50 rounded-lg p-6">
+    <h3 class="text-lg font-semibold text-gray-900 mb-3">Example CSV Structure</h3>
+    <div class="overflow-x-auto">
+      <table class="min-w-full bg-white border border-gray-300 text-sm">
+        <thead class="bg-gray-100">
+          <tr>
+            <th class="px-3 py-2 border border-gray-300 text-left">Date</th>
+            <th class="px-3 py-2 border border-gray-300 text-left">Name</th>
+            <th class="px-3 py-2 border border-gray-300 text-left">Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="px-3 py-2 border border-gray-300">2024-12-25</td>
+            <td class="px-3 py-2 border border-gray-300">Christmas</td>
+            <td class="px-3 py-2 border border-gray-300">Christmas Day</td>
+          </tr>
+          <tr>
+            <td class="px-3 py-2 border border-gray-300">2025-01-01</td>
+            <td class="px-3 py-2 border border-gray-300">New Year's Day</td>
+            <td class="px-3 py-2 border border-gray-300">New Year's Day</td>
+          </tr>
+          <tr>
+            <td class="px-3 py-2 border border-gray-300">2025-07-04</td>
+            <td class="px-3 py-2 border border-gray-300">Independence Day</td>
+            <td class="px-3 py-2 border border-gray-300">US Independence Day</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,64 @@
+<div class="w-full">
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900">Global Holidays</h1>
+      <p class="text-gray-600 mt-2">Holidays that apply to all team members</p>
+    </div>
+    <div class="flex space-x-2">
+      <%= link_to "Bulk Upload", bulk_upload_global_holidays_path, class: "bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg" %>
+      <%= link_to "New Global Holiday", new_global_holiday_path, class: "bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg" %>
+    </div>
+  </div>
+
+  <!-- Year Filter -->
+  <div class="bg-white rounded-lg shadow-md p-4 mb-6">
+    <%= form_with url: global_holidays_path, method: :get, class: "flex items-center space-x-4" do |form| %>
+      <%= form.label :year, "Filter by Year:", class: "text-sm font-medium text-gray-700" %>
+      <%= form.number_field :year, value: @year, min: 2020, max: 2100, class: "px-3 py-2 border border-gray-300 rounded-md w-24" %>
+      <%= form.submit "Filter", class: "bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg" %>
+      <%= link_to "View All", global_holidays_path, class: "text-gray-600 hover:text-gray-800 text-sm" %>
+    <% end %>
+  </div>
+
+  <% if @global_holidays.any? %>
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Day of Week</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <% @global_holidays.each do |holiday| %>
+            <tr>
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                <%= holiday.date.strftime("%B %d, %Y") %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><%= holiday.name %></td>
+              <td class="px-6 py-4 text-sm text-gray-500"><%= holiday.description %></td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <%= holiday.date.strftime("%A") %>
+                <% if holiday.date.saturday? || holiday.date.sunday? %>
+                  <span class="ml-2 text-xs text-gray-400">(Weekend)</span>
+                <% end %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <%= link_to "Edit", edit_global_holiday_path(holiday), class: "text-blue-600 hover:text-blue-900 mr-4" %>
+                <%= link_to "Delete", global_holiday_path(holiday), method: :delete, data: { confirm: "Are you sure?" }, class: "text-red-600 hover:text-red-900" %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <div class="bg-white rounded-lg shadow-md p-12 text-center">
+      <p class="text-gray-600 mb-4">No global holidays for <%= @year %>.</p>
+      <%= link_to "Add Global Holiday", new_global_holiday_path, class: "bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg" %>
+    </div>
+  <% end %>
+</div>

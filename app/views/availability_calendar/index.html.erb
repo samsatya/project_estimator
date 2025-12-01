@@ -1,0 +1,247 @@
+<div class="w-full">
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900">Availability Calendar</h1>
+      <% if @team %>
+        <p class="text-gray-600 mt-2">Team: <strong><%= @team.name %></strong></p>
+      <% elsif @user %>
+        <p class="text-gray-600 mt-2">Team Member: <strong><%= @user.name %></strong></p>
+      <% elsif @view_all %>
+        <p class="text-gray-600 mt-2">All Team Members</p>
+      <% end %>
+    </div>
+    <div class="flex space-x-2">
+      <%= form_with url: request.path, method: :get, class: "flex space-x-2" do |form| %>
+        <%= form.date_field :start_date, value: @start_date, class: "px-3 py-2 border border-gray-300 rounded-md" %>
+        <span class="self-center">to</span>
+        <%= form.date_field :end_date, value: @end_date, class: "px-3 py-2 border border-gray-300 rounded-md" %>
+        <%= form.submit "Update", class: "bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg" %>
+      <% end %>
+      <% if @team %>
+        <%= link_to "Back to Team", team_path(@team), class: "bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg" %>
+      <% else %>
+        <%= link_to "Back", root_path, class: "bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg" %>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Team Members on Leave Today -->
+  <% if @team_members_on_leave_today&.any? %>
+    <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
+      <h3 class="text-lg font-semibold text-blue-900 mb-3">Team Members on Leave Today (<%= Date.current.strftime("%B %d, %Y") %>)</h3>
+      <div class="space-y-2">
+        <% @team_members_on_leave_today.each do |member| %>
+          <div class="flex items-start space-x-3">
+            <div class="flex-shrink-0">
+              <% if member[:type] == :time_off %>
+                <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-100 text-red-800 text-sm font-semibold">TO</span>
+              <% elsif member[:type] == :holiday %>
+                <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-yellow-100 text-yellow-800 text-sm font-semibold">PH</span>
+              <% elsif member[:type] == :global_holiday %>
+                <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-orange-100 text-orange-800 text-sm font-semibold">GH</span>
+              <% end %>
+            </div>
+            <div class="flex-1">
+              <p class="text-sm font-medium text-blue-900"><%= member[:user].name %></p>
+              <p class="text-sm text-blue-700"><%= member[:reason] %></p>
+              <% if member[:details].present? && member[:type] == :time_off %>
+                <p class="text-xs text-blue-600 mt-1"><%= member[:details] %></p>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% else %>
+    <div class="bg-green-50 border-l-4 border-green-400 p-4 mb-6">
+      <h3 class="text-lg font-semibold text-green-900 mb-2">Team Status Today (<%= Date.current.strftime("%B %d, %Y") %>)</h3>
+      <p class="text-sm text-green-800">All team members are available today! 🎉</p>
+    </div>
+  <% end %>
+
+  <!-- Legend -->
+  <div class="bg-white rounded-lg shadow-md p-4 mb-6">
+    <h3 class="text-sm font-semibold text-gray-700 mb-3">Legend</h3>
+    <div class="flex flex-wrap gap-4 text-sm">
+      <div class="flex items-center">
+        <div class="w-6 h-6 bg-green-100 border-2 border-green-500 rounded mr-2"></div>
+        <span>Available</span>
+      </div>
+      <div class="flex items-center">
+        <div class="w-6 h-6 bg-orange-100 border-2 border-orange-500 rounded mr-2"></div>
+        <span>Global Holiday</span>
+      </div>
+      <div class="flex items-center">
+        <div class="w-6 h-6 bg-yellow-100 border-2 border-yellow-500 rounded mr-2"></div>
+        <span>Personal Holiday</span>
+      </div>
+      <div class="flex items-center">
+        <div class="w-6 h-6 bg-red-100 border-2 border-red-500 rounded mr-2"></div>
+        <span>Time Off</span>
+      </div>
+      <div class="flex items-center">
+        <div class="w-6 h-6 bg-gray-100 border-2 border-gray-400 rounded mr-2"></div>
+        <span>Weekend</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Calendar for each user -->
+  <% if @users&.any? %>
+    <% @users.each do |user| %>
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+      <div class="flex justify-between items-center mb-4">
+        <div>
+          <h2 class="text-xl font-semibold text-gray-900"><%= user.name %></h2>
+          <p class="text-sm text-gray-600">
+            <%= user.primary_strength %> / <%= user.secondary_strength %>
+            <% if user.capacity %>
+              | Capacity: <%= user.capacity %> hrs/week
+            <% end %>
+          </p>
+        </div>
+        <div class="text-right">
+          <% summary = @summaries[user.id] %>
+          <div class="text-sm">
+            <span class="text-gray-600">Available Days:</span>
+            <span class="font-semibold text-green-700"><%= summary[:available_days] %></span>
+          </div>
+          <div class="text-sm">
+            <span class="text-gray-600">Unavailable:</span>
+            <span class="font-semibold text-red-700"><%= summary[:unavailable_days] %></span>
+            (<%= summary[:global_holiday_days] || 0 %> global, <%= summary[:user_holiday_days] || 0 %> personal holidays, <%= summary[:time_off_days] %> time off)
+          </div>
+        </div>
+      </div>
+
+      <!-- Calendar Grid -->
+      <div class="overflow-x-auto">
+        <table class="min-w-full border-collapse">
+          <thead>
+            <tr>
+              <th class="border border-gray-300 px-2 py-2 text-xs font-semibold text-gray-700 bg-gray-50">Sun</th>
+              <th class="border border-gray-300 px-2 py-2 text-xs font-semibold text-gray-700 bg-gray-50">Mon</th>
+              <th class="border border-gray-300 px-2 py-2 text-xs font-semibold text-gray-700 bg-gray-50">Tue</th>
+              <th class="border border-gray-300 px-2 py-2 text-xs font-semibold text-gray-700 bg-gray-50">Wed</th>
+              <th class="border border-gray-300 px-2 py-2 text-xs font-semibold text-gray-700 bg-gray-50">Thu</th>
+              <th class="border border-gray-300 px-2 py-2 text-xs font-semibold text-gray-700 bg-gray-50">Fri</th>
+              <th class="border border-gray-300 px-2 py-2 text-xs font-semibold text-gray-700 bg-gray-50">Sat</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% 
+              # Create calendar weeks starting from Sunday
+              first_sunday = @start_date - @start_date.wday
+              last_saturday = @end_date + (6 - @end_date.wday)
+              weeks = []
+              current_date = first_sunday
+              while current_date <= last_saturday
+                week = []
+                7.times do
+                  week << current_date
+                  current_date = current_date + 1
+                end
+                weeks << week
+              end
+            %>
+            <% weeks.each do |week| %>
+              <tr>
+                <% week.each do |date| %>
+                  <% if date >= @start_date && date <= @end_date %>
+                    <% day_data = @calendar_data[user.id][date] %>
+                    <% status = day_data[:status] %>
+                    <td class="border border-gray-300 px-1 py-1 text-center align-top <%= cell_class(status) %>" style="min-width: 80px; height: 80px;">
+                      <div class="text-xs font-semibold mb-1"><%= date.day %></div>
+                      <% if status == :global_holiday %>
+                        <% global_holiday = @global_holidays[date] %>
+                        <div class="text-xs text-orange-800 font-medium" title="<%= global_holiday&.name %>">
+                          🌍 <%= truncate(global_holiday&.name || "Global Holiday", length: 12) %>
+                        </div>
+                      <% elsif status == :holiday %>
+                        <% holiday = @holidays_by_user[user.id]&.[](date) %>
+                        <div class="text-xs text-yellow-800 font-medium" title="<%= holiday&.name %>">
+                          <%= truncate(holiday&.name || "Holiday", length: 15) %>
+                        </div>
+                      <% elsif status == :time_off %>
+                        <% time_off = @time_offs_by_user[user.id]&.find { |to| date >= to.start_date && date <= to.end_date } %>
+                        <div class="text-xs text-red-800 font-medium" title="<%= time_off&.leave_type %>: <%= time_off&.reason %>">
+                          <%= truncate(time_off&.leave_type || "Time Off", length: 15) %>
+                        </div>
+                      <% elsif status == :weekend %>
+                        <div class="text-xs text-gray-500">Weekend</div>
+                      <% else %>
+                        <div class="text-xs text-green-700 font-medium">Available</div>
+                      <% end %>
+                    </td>
+                  <% else %>
+                    <td class="border border-gray-300 bg-gray-50"></td>
+                  <% end %>
+                <% end %>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <% end %>
+  <% else %>
+    <div class="bg-white rounded-lg shadow-md p-12 text-center">
+      <p class="text-gray-600 mb-4">No team members found to display.</p>
+      <%= link_to "Back", root_path, class: "bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg" %>
+    </div>
+  <% end %>
+
+  <!-- Team/User Selection -->
+  <% if current_user.manager? || @view_all %>
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+      <h3 class="text-lg font-semibold text-gray-900 mb-4">View Other Calendars</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <h4 class="text-sm font-medium text-gray-700 mb-2">Teams</h4>
+          <ul class="space-y-1">
+            <% Team.all.order(:name).each do |team| %>
+              <li>
+                <%= link_to team.name, team_availability_calendar_index_path(team), class: "text-blue-600 hover:text-blue-800 text-sm" %>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+        <div>
+          <h4 class="text-sm font-medium text-gray-700 mb-2">Team Members</h4>
+          <ul class="space-y-1">
+            <% User.all.order(:name).each do |user| %>
+              <li>
+                <%= link_to user.name, user_availability_calendar_path(user), class: "text-blue-600 hover:text-blue-800 text-sm" %>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>
+
+<% content_for :head do %>
+  <style>
+    .cell-available {
+      background-color: #dcfce7;
+      border-color: #22c55e;
+    }
+    .cell-global-holiday {
+      background-color: #fed7aa;
+      border-color: #f97316;
+    }
+    .cell-holiday {
+      background-color: #fef3c7;
+      border-color: #eab308;
+    }
+    .cell-time_off {
+      background-color: #fee2e2;
+      border-color: #ef4444;
+    }
+    .cell-weekend {
+      background-color: #f3f4f6;
+      border-color: #9ca3af;
+    }
+  </style>
+<% end %>

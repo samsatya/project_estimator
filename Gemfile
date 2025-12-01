@@ -49,6 +49,12 @@ gem "tailwindcss-rails"
 # Excel export
 gem "caxlsx_rails"
 
+# Jira integration
+gem "jira-ruby"
+
+# CSV processing
+gem "csv"
+
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"

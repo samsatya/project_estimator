@@ -8,7 +8,6 @@ class BulkUploadService
   end
 
   def import_from_csv(csv_content)
-    require 'csv'
     
     begin
       csv = CSV.parse(csv_content, headers: true, header_converters: :symbol)
@@ -128,7 +127,6 @@ class BulkUploadService
   end
 
   def self.generate_template
-    require 'csv'
     
     CSV.generate(headers: true) do |csv|
       # Header row

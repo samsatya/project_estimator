@@ -10,18 +10,34 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_12_01_092708) do
+ActiveRecord::Schema[8.1].define(version: 2025_12_01_125437) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
   create_table "epics", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "description"
+    t.date "end_date"
+    t.integer "jira_epic_id"
+    t.string "jira_epic_key"
+    t.datetime "last_synced_at"
     t.string "name"
     t.integer "position"
     t.bigint "project_id", null: false
+    t.date "start_date"
     t.datetime "updated_at", null: false
+    t.index ["jira_epic_id"], name: "index_epics_on_jira_epic_id"
+    t.index ["jira_epic_key"], name: "index_epics_on_jira_epic_key"
     t.index ["project_id"], name: "index_epics_on_project_id"
+  end
+
+  create_table "global_holidays", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.date "date"
+    t.text "description"
+    t.string "name"
+    t.datetime "updated_at", null: false
+    t.index ["date"], name: "index_global_holidays_on_date", unique: true
   end
 
   create_table "holidays", force: :cascade do |t|
@@ -47,29 +63,42 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_01_092708) do
     t.decimal "business_testing_time_percentage", precision: 5, scale: 2, default: "0.15"
     t.datetime "created_at", null: false
     t.text "description"
+    t.string "jira_api_token"
+    t.string "jira_project_key"
+    t.string "jira_site_url"
+    t.string "jira_username"
     t.string "name"
     t.decimal "points_to_hours_conversion", precision: 5, scale: 2, default: "8.0"
     t.decimal "pr_review_time_percentage", precision: 5, scale: 2, default: "0.15"
     t.decimal "product_testing_time_percentage", precision: 5, scale: 2, default: "0.2"
     t.date "start_date"
     t.string "status", default: "planning"
+    t.boolean "sync_enabled", default: false
     t.date "target_date"
     t.datetime "updated_at", null: false
+    t.index ["jira_project_key"], name: "index_projects_on_jira_project_key"
   end
 
   create_table "stories", force: :cascade do |t|
     t.bigint "assigned_user_id"
     t.datetime "created_at", null: false
     t.text "description"
+    t.date "end_date"
     t.bigint "epic_id", null: false
     t.decimal "estimated_hours", precision: 10, scale: 2
+    t.integer "jira_issue_id"
+    t.string "jira_issue_key"
+    t.datetime "last_synced_at"
     t.string "name"
     t.integer "points"
+    t.date "start_date"
     t.string "status"
     t.string "task_type"
     t.datetime "updated_at", null: false
     t.index ["assigned_user_id"], name: "index_stories_on_assigned_user_id"
     t.index ["epic_id"], name: "index_stories_on_epic_id"
+    t.index ["jira_issue_id"], name: "index_stories_on_jira_issue_id"
+    t.index ["jira_issue_key"], name: "index_stories_on_jira_issue_key"
   end
 
   create_table "subtasks", force: :cascade do |t|

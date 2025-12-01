@@ -70,7 +70,7 @@ class EpicsController < ApplicationController
     @epic = @project.epics.find(params[:id])
   end
 
-  def epic_params
-    params.require(:epic).permit(:name, :description, :position)
-  end
+      def epic_params
+        params.require(:epic).permit(:name, :description, :position, :start_date, :end_date)
+      end
 end

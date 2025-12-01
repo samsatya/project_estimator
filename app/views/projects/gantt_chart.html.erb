@@ -1,0 +1,119 @@
+<div class="w-full">
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900">Gantt Chart: <%= @project.name %></h1>
+      <p class="text-gray-600 mt-2">Timeline view of epics and stories</p>
+    </div>
+    <div class="flex space-x-2">
+      <%= link_to "Back to Project", @project, class: "bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg" %>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+    <div id="gantt-container" class="overflow-x-auto"></div>
+  </div>
+
+  <div class="bg-white rounded-lg shadow-md p-6">
+    <h2 class="text-xl font-semibold mb-4">Legend</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <h3 class="font-medium text-gray-700 mb-2">Epics</h3>
+        <ul class="space-y-1 text-sm text-gray-600">
+          <% @epics.each do |epic| %>
+            <li class="flex items-center">
+              <span class="w-4 h-4 bg-blue-500 rounded mr-2"></span>
+              <%= epic.name %>
+            </li>
+          <% end %>
+        </ul>
+      </div>
+      <div>
+        <h3 class="font-medium text-gray-700 mb-2">Stories</h3>
+        <ul class="space-y-1 text-sm text-gray-600">
+          <% @epics.each do |epic| %>
+            <% epic.stories.each do |story| %>
+              <li class="flex items-center">
+                <span class="w-4 h-4 bg-green-500 rounded mr-2"></span>
+                <%= story.name %> (<%= epic.name %>)
+              </li>
+            <% end %>
+          <% end %>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/frappe-gantt@0.6.1/dist/frappe-gantt.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/frappe-gantt@0.6.1/dist/frappe-gantt.css">
+
+<script>
+  document.addEventListener('turbo:load', () => {
+    const ganttData = [];
+    
+    <% @epics.each do |epic| %>
+      <% if epic.start_date && epic.end_date %>
+        ganttData.push({
+          id: 'epic-<%= epic.id %>',
+          name: '<%= j(epic.name) %>',
+          start: '<%= epic.start_date.strftime("%Y-%m-%d") %>',
+          end: '<%= epic.end_date.strftime("%Y-%m-%d") %>',
+          progress: 0,
+          custom_class: 'epic-bar'
+        });
+      <% end %>
+      <% epic.stories.each do |story| %>
+        <% if story.start_date && story.end_date %>
+          ganttData.push({
+            id: 'story-<%= story.id %>',
+            name: '<%= j(story.name) %>',
+            start: '<%= story.start_date.strftime("%Y-%m-%d") %>',
+            end: '<%= story.end_date.strftime("%Y-%m-%d") %>',
+            progress: <%= story.status == 'completed' ? 100 : (story.status == 'in_progress' ? 50 : 0) %>,
+            custom_class: 'story-bar',
+            dependencies: 'epic-<%= epic.id %>'
+          });
+        <% end %>
+      <% end %>
+    <% end %>
+
+    if (ganttData.length > 0) {
+      const gantt = new Gantt("#gantt-container", ganttData, {
+        view_mode: 'Month',
+        language: 'en',
+        header_height: 50,
+        column_width: 30,
+        step: 24,
+        bar_height: 20,
+        bar_corner_radius: 3,
+        arrow_curve: 5,
+        padding: 18,
+        date_format: 'YYYY-MM-DD',
+        on_click: function (task) {
+          console.log(task);
+        },
+        on_date_change: function(task, start, end) {
+          console.log(task, start, end);
+        },
+        on_progress_change: function(task, progress) {
+          console.log(task, progress);
+        },
+        on_view_change: function(mode) {
+          console.log(mode);
+        }
+      });
+    } else {
+      document.getElementById('gantt-container').innerHTML = '<p class="text-gray-600 text-center py-8">No tasks with dates found. Please add start and end dates to epics and stories.</p>';
+    }
+  });
+</script>
+
+<style>
+  .epic-bar {
+    fill: #3b82f6 !important;
+  }
+  .story-bar {
+    fill: #10b981 !important;
+  }
+</style>
+

@@ -53,10 +53,47 @@
       <%= form.select :task_type, Story::TASK_TYPES, { prompt: "Select task type (optional)" }, { class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" } %>
     </div>
 
-    <div class="mb-6">
+    <div class="mb-4">
       <%= form.label :estimated_hours, "Estimated Hours (optional, overrides points)", class: "block text-sm font-medium text-gray-700 mb-2" %>
       <%= form.number_field :estimated_hours, step: 0.5, class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" %>
     </div>
+
+    <div class="grid grid-cols-2 gap-4 mb-6">
+      <div>
+        <%= form.label :start_date, "Start Date", class: "block text-sm font-medium text-gray-700 mb-2" %>
+        <%= form.date_field :start_date, class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" %>
+      </div>
+      <div>
+        <%= form.label :end_date, "End Date", class: "block text-sm font-medium text-gray-700 mb-2" %>
+        <%= form.date_field :end_date, class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" %>
+      </div>
+    </div>
+
+    <% if @story.jira_issue_key.present? %>
+      <div class="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <h3 class="text-sm font-semibold text-blue-900 mb-2">Jira Integration</h3>
+        <div class="space-y-2 text-sm">
+          <div>
+            <span class="font-medium text-blue-800">Jira Issue Key:</span>
+            <a href="<%= @project.jira_site_url %>/browse/<%= @story.jira_issue_key %>" target="_blank" class="text-blue-600 hover:text-blue-800 ml-2">
+              <%= @story.jira_issue_key %> 🔗
+            </a>
+          </div>
+          <% if @story.jira_issue_id.present? %>
+            <div>
+              <span class="font-medium text-blue-800">Jira Issue ID:</span>
+              <span class="text-blue-700 ml-2"><%= @story.jira_issue_id %></span>
+            </div>
+          <% end %>
+          <% if @story.last_synced_at.present? %>
+            <div>
+              <span class="font-medium text-blue-800">Last Synced:</span>
+              <span class="text-blue-700 ml-2"><%= @story.last_synced_at.strftime("%B %d, %Y at %I:%M %p") %></span>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
 
     <div class="flex space-x-4">
       <%= form.submit "Update Story", class: "bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg" %>

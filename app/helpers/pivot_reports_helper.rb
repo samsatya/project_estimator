@@ -1,0 +1,2 @@
+module PivotReportsHelper
+end

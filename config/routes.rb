@@ -9,6 +9,15 @@ Rails.application.routes.draw do
     resources :time_offs, except: [:show]
   end
 
+  # Global holidays (manager only)
+  resources :global_holidays, except: [:show] do
+    collection do
+      get :bulk_upload
+      post :process_bulk_upload
+      get :download_template
+    end
+  end
+
   # Capacity reports for managers
   resources :capacity_reports, only: [:index, :show]
 
@@ -29,6 +38,13 @@ Rails.application.routes.draw do
     member do
       get :dashboard
       get :export
+      get :gantt_chart
+      get :pivot_report
+      get :jira_config
+      patch :update_jira_config
+      post :test_jira_connection
+      post :sync_to_jira
+      post :sync_from_jira
       post :add_team_member
       delete :remove_team_member
       post :add_team
@@ -41,7 +57,12 @@ Rails.application.routes.draw do
       post :add_member
       delete :remove_member
     end
+    resources :availability_calendar, only: [:index], controller: "availability_calendar"
   end
   
+  # Availability Calendar
+  resources :availability_calendar, only: [:index]
+  get "availability_calendar/user/:user_id", to: "availability_calendar#index", as: "user_availability_calendar"
+
   get "up" => "rails/health#show", as: :rails_health_check
 end

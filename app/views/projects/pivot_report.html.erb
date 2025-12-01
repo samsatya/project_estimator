@@ -1,0 +1,152 @@
+<div class="w-full">
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900">Pivot Report: <%= @project.name %></h1>
+      <p class="text-gray-600 mt-2">Analyze story data with pivot tables</p>
+    </div>
+    <div class="flex space-x-2">
+      <%= link_to "Back to Project", @project, class: "bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg" %>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+    <h2 class="text-xl font-semibold mb-4">Configure Pivot Table</h2>
+    <%= form_with url: pivot_report_project_path(@project), method: :get, local: true, class: "space-y-4" do |form| %>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <%= form.label :rows, "Rows", class: "block text-sm font-medium text-gray-700 mb-2" %>
+          <%= form.select :rows, 
+              options_for_select([
+                ['Epic', 'epic'],
+                ['Assigned User', 'assigned_user'],
+                ['Status', 'status'],
+                ['Task Type', 'task_type'],
+                ['Points', 'points']
+              ], params[:rows]),
+              { include_blank: "Select..." },
+              { class: "w-full px-3 py-2 border border-gray-300 rounded-md" } %>
+        </div>
+        <div>
+          <%= form.label :columns, "Columns", class: "block text-sm font-medium text-gray-700 mb-2" %>
+          <%= form.select :columns,
+              options_for_select([
+                ['Epic', 'epic'],
+                ['Assigned User', 'assigned_user'],
+                ['Status', 'status'],
+                ['Task Type', 'task_type'],
+                ['Points', 'points']
+              ], params[:columns]),
+              { include_blank: "Select..." },
+              { class: "w-full px-3 py-2 border border-gray-300 rounded-md" } %>
+        </div>
+        <div>
+          <%= form.label :values, "Values (Aggregate)", class: "block text-sm font-medium text-gray-700 mb-2" %>
+          <%= form.select :values,
+              options_for_select([
+                ['Count', 'count'],
+                ['Sum of Points', 'sum_points'],
+                ['Average Points', 'avg_points']
+              ], params[:values] || 'count'),
+              {},
+              { class: "w-full px-3 py-2 border border-gray-300 rounded-md" } %>
+        </div>
+      </div>
+      <div>
+        <%= form.submit "Generate Report", class: "bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg" %>
+      </div>
+    <% end %>
+  </div>
+
+  <% if params[:rows].present? || params[:columns].present? %>
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <h2 class="text-xl font-semibold mb-4">Pivot Table Results</h2>
+      <div id="pivot-table-container" class="overflow-x-auto"></div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pivottable@2.23.0/dist/pivot.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pivottable@2.23.0/dist/pivot.min.css">
+
+    <script>
+      document.addEventListener('turbo:load', function() {
+        // Wait for jQuery to be available
+        if (typeof $ === 'undefined') {
+          setTimeout(arguments.callee, 100);
+          return;
+        }
+
+        const data = <%= raw @stories.map { |s|
+          {
+            id: s.id,
+            name: s.name,
+            epic: s.epic&.name || 'Unassigned',
+            assigned_user: s.assigned_user&.name || 'Unassigned',
+            status: s.status || 'not_started',
+            task_type: s.task_type || 'Not Set',
+            points: s.points || 0,
+            estimated_hours: s.estimated_hours || (s.points ? s.points * @project.points_to_hours_conversion : 0),
+            start_date: s.start_date&.strftime("%Y-%m-%d") || '',
+            end_date: s.end_date&.strftime("%Y-%m-%d") || ''
+          }
+        }.to_json %>;
+
+        const rows = '<%= params[:rows] %>';
+        const columns = '<%= params[:columns] %>';
+        const values = '<%= params[:values] || 'count' %>';
+
+        let aggregatorName = 'Count';
+        let vals = [];
+
+        if (values === 'sum_points') {
+          aggregatorName = 'Sum';
+          vals = ['points'];
+        } else if (values === 'avg_points') {
+          aggregatorName = 'Average';
+          vals = ['points'];
+        }
+
+        const config = {
+          rows: rows ? [rows] : [],
+          cols: columns ? [columns] : [],
+          aggregatorName: aggregatorName,
+          vals: vals
+        };
+
+        $("#pivot-table-container").pivotUI(data, config, true);
+      });
+    </script>
+  <% else %>
+    <div class="bg-gray-50 rounded-lg p-8 text-center">
+      <p class="text-gray-600">Select rows, columns, and values above to generate a pivot table report.</p>
+    </div>
+  <% end %>
+
+  <div class="bg-white rounded-lg shadow-md p-6 mt-6">
+    <h2 class="text-xl font-semibold mb-4">Available Fields</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+      <div>
+        <h3 class="font-medium text-gray-700 mb-2">Story Fields:</h3>
+        <ul class="list-disc list-inside text-gray-600 space-y-1">
+          <li>Name</li>
+          <li>Epic</li>
+          <li>Assigned User</li>
+          <li>Status</li>
+          <li>Task Type</li>
+          <li>Points</li>
+          <li>Estimated Hours</li>
+          <li>Start Date</li>
+          <li>End Date</li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="font-medium text-gray-700 mb-2">Aggregation Options:</h3>
+        <ul class="list-disc list-inside text-gray-600 space-y-1">
+          <li>Count - Number of stories</li>
+          <li>Sum of Points - Total story points</li>
+          <li>Average Points - Average story points</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
