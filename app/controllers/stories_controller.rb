@@ -60,6 +60,6 @@ class StoriesController < ApplicationController
   end
 
   def story_params
-    params.require(:story).permit(:name, :description, :points, :assigned_user_id, :status, :estimated_hours)
+    params.require(:story).permit(:name, :description, :points, :assigned_user_id, :status, :estimated_hours, :task_type)
   end
 end

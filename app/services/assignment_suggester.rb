@@ -26,6 +26,20 @@ class AssignmentSuggester
   private
 
   def extract_required_skill
+    # First check if task_type is explicitly set
+    if @item.respond_to?(:task_type) && @item.task_type.present?
+      case @item.task_type
+      when "UI"
+        return "Frontend"
+      when "Backend"
+        return "Backend"
+      when "Infra"
+        return "DevOps"
+      when "Test"
+        return "QA"
+      end
+    end
+    
     # Try to infer skill from story/subtask name/description
     # This is a simple implementation - can be enhanced with ML or tags
     text = "#{@item.name} #{@item.description}".downcase

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_12_01_084150) do
+ActiveRecord::Schema[8.1].define(version: 2025_12_01_092708) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -66,6 +66,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_01_084150) do
     t.string "name"
     t.integer "points"
     t.string "status"
+    t.string "task_type"
     t.datetime "updated_at", null: false
     t.index ["assigned_user_id"], name: "index_stories_on_assigned_user_id"
     t.index ["epic_id"], name: "index_stories_on_epic_id"
@@ -79,6 +80,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_01_084150) do
     t.string "name"
     t.string "status"
     t.bigint "story_id", null: false
+    t.string "task_type"
     t.datetime "updated_at", null: false
     t.index ["assigned_user_id"], name: "index_subtasks_on_assigned_user_id"
     t.index ["story_id"], name: "index_subtasks_on_story_id"

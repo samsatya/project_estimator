@@ -55,6 +55,6 @@ class SubtasksController < ApplicationController
   end
 
   def subtask_params
-    params.require(:subtask).permit(:name, :description, :assigned_user_id, :estimated_hours, :status)
+    params.require(:subtask).permit(:name, :description, :assigned_user_id, :estimated_hours, :status, :task_type)
   end
 end

@@ -39,6 +39,7 @@ class BulkUploadService
           story_description = row[:story_description]&.to_s&.strip
           story_assigned_to = row[:story_assigned_to]&.to_s&.strip
           story_status = row[:story_status]&.to_s&.strip&.downcase
+          story_task_type = row[:story_task_type]&.to_s&.strip
 
           if story_name.blank?
             @errors << "Row #{row_number}: Story name cannot be blank"
@@ -55,6 +56,7 @@ class BulkUploadService
           current_story.points = story_points
           current_story.description = story_description if story_description.present?
           current_story.status = story_status if story_status.present?
+          current_story.task_type = story_task_type if story_task_type.present? && Story::TASK_TYPES.include?(story_task_type)
           
           # Assign user if provided
           if story_assigned_to.present?
@@ -84,6 +86,7 @@ class BulkUploadService
           subtask_description = row[:subtask_description]&.to_s&.strip
           subtask_assigned_to = row[:subtask_assigned_to]&.to_s&.strip
           subtask_status = row[:subtask_status]&.to_s&.strip&.downcase
+          subtask_task_type = row[:subtask_task_type]&.to_s&.strip
 
           if subtask_name.blank?
             @errors << "Row #{row_number}: Subtask name cannot be blank"
@@ -95,6 +98,7 @@ class BulkUploadService
           subtask.estimated_hours = subtask_hours if subtask_hours
           subtask.description = subtask_description if subtask_description.present?
           subtask.status = subtask_status if subtask_status.present?
+          subtask.task_type = subtask_task_type if subtask_task_type.present? && Subtask::TASK_TYPES.include?(subtask_task_type)
           
           # Assign user if provided
           if subtask_assigned_to.present?
@@ -134,11 +138,13 @@ class BulkUploadService
         "Story Description",
         "Story Assigned To",
         "Story Status",
+        "Story Task Type",
         "Subtask Name",
         "Subtask Estimated Hours",
         "Subtask Description",
         "Subtask Assigned To",
-        "Subtask Status"
+        "Subtask Status",
+        "Subtask Task Type"
       ]
       
       # Example rows
@@ -148,14 +154,17 @@ class BulkUploadService
         "Implement login and registration",
         "john@example.com",
         "not_started",
+        "Backend",
         "Create login form",
         "4",
         "Design and implement login UI",
         "jane@example.com",
-        "not_started"
+        "not_started",
+        "UI"
       ]
       
       csv << [
+        "",
         "",
         "",
         "",
@@ -165,7 +174,8 @@ class BulkUploadService
         "6",
         "Design and implement registration UI",
         "jane@example.com",
-        "not_started"
+        "not_started",
+        "UI"
       ]
       
       csv << [
@@ -174,11 +184,13 @@ class BulkUploadService
         "Build user dashboard",
         "bob@example.com",
         "in_progress",
+        "Full-stack",
         "Design dashboard layout",
         "8",
         "Create wireframes and design",
         "alice@example.com",
-        "completed"
+        "completed",
+        "UI"
       ]
     end
   end
