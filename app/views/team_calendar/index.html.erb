@@ -1,0 +1,377 @@
+<div class="w-full">
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900">Team Calendar</h1>
+      <p class="text-gray-600 mt-2">Team: <strong><%= @team.name %></strong> (<%= pluralize(@users.count, 'member') %>)</p>
+    </div>
+    <div class="flex space-x-2">
+      <%= form_with url: team_team_calendar_index_path(@team), method: :get, class: "flex space-x-2" do |form| %>
+        <%= form.date_field :start_date, value: @start_date, class: "px-3 py-2 border border-gray-300 rounded-md" %>
+        <span class="self-center">to</span>
+        <%= form.date_field :end_date, value: @end_date, class: "px-3 py-2 border border-gray-300 rounded-md" %>
+        <%= form.submit "Update", class: "bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg" %>
+      <% end %>
+      <%= link_to "Individual View", team_availability_calendar_index_path(@team), class: "bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg" %>
+      <%= link_to "Back to Team", team_path(@team), class: "bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg" %>
+    </div>
+  </div>
+
+  <!-- Team Summary Stats -->
+  <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+    <h2 class="text-xl font-semibold mb-4">Team Availability Summary</h2>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="text-center">
+        <p class="text-2xl font-bold text-blue-600"><%= @team_summary[:total_members] %></p>
+        <p class="text-sm text-gray-600">Team Members</p>
+      </div>
+      <div class="text-center">
+        <p class="text-2xl font-bold text-green-600"><%= @team_summary[:available_member_days] %></p>
+        <p class="text-sm text-gray-600">Available Member-Days</p>
+      </div>
+      <div class="text-center">
+        <p class="text-2xl font-bold text-red-600"><%= @team_summary[:unavailable_member_days] %></p>
+        <p class="text-sm text-gray-600">Unavailable Member-Days</p>
+      </div>
+      <div class="text-center">
+        <p class="text-2xl font-bold text-indigo-600"><%= @team_summary[:availability_percentage] %>%</p>
+        <p class="text-sm text-gray-600">Team Availability</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Team Members on Leave Today -->
+  <% if @team_members_on_leave_today&.any? %>
+    <div class="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
+      <h3 class="text-lg font-semibold text-red-900 mb-3">Team Members on Leave Today (<%= Date.current.strftime("%B %d, %Y") %>)</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        <% @team_members_on_leave_today.each do |member| %>
+          <div class="flex items-start space-x-3 bg-white rounded-lg p-3 shadow-sm">
+            <div class="flex-shrink-0">
+              <% if member[:status] == :time_off %>
+                <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-100 text-red-800 text-sm font-semibold">TO</span>
+              <% elsif member[:status] == :holiday %>
+                <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-yellow-100 text-yellow-800 text-sm font-semibold">PH</span>
+              <% elsif member[:status] == :global_holiday %>
+                <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-orange-100 text-orange-800 text-sm font-semibold">GH</span>
+              <% end %>
+            </div>
+            <div class="flex-1">
+              <p class="text-sm font-medium text-gray-900"><%= member[:user].name %></p>
+              <p class="text-sm text-gray-700"><%= member[:reason] %></p>
+              <% if member[:details].present? && member[:status] == :time_off %>
+                <p class="text-xs text-gray-600 mt-1"><%= member[:details] %></p>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% else %>
+    <div class="bg-green-50 border-l-4 border-green-400 p-4 mb-6">
+      <h3 class="text-lg font-semibold text-green-900 mb-2">Team Status Today (<%= Date.current.strftime("%B %d, %Y") %>)</h3>
+      <p class="text-sm text-green-800">All team members are available today! 🎉</p>
+    </div>
+  <% end %>
+
+  <!-- Legend -->
+  <div class="bg-white rounded-lg shadow-md p-4 mb-6">
+    <h3 class="text-sm font-semibold text-gray-700 mb-3">Legend</h3>
+    <div class="flex flex-wrap gap-4 text-sm">
+      <div class="flex items-center">
+        <div class="w-6 h-6 bg-green-100 border-2 border-green-500 rounded mr-2"></div>
+        <span>All Available</span>
+      </div>
+      <div class="flex items-center">
+        <div class="w-6 h-6 bg-yellow-100 border-2 border-yellow-500 rounded mr-2"></div>
+        <span>Partially Available</span>
+      </div>
+      <div class="flex items-center">
+        <div class="w-6 h-6 bg-red-100 border-2 border-red-500 rounded mr-2"></div>
+        <span>Most/All Unavailable</span>
+      </div>
+      <div class="flex items-center">
+        <div class="w-6 h-6 bg-orange-100 border-2 border-orange-500 rounded mr-2"></div>
+        <span>Global Holiday</span>
+      </div>
+      <div class="flex items-center">
+        <div class="w-6 h-6 bg-gray-100 border-2 border-gray-400 rounded mr-2"></div>
+        <span>Weekend</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Consolidated Team Calendar -->
+  <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-xl font-semibold text-gray-900">Consolidated Team Calendar</h2>
+      <p class="text-sm text-gray-600">Click on any date to see who is available/unavailable</p>
+    </div>
+
+    <!-- Calendar Grid -->
+    <div class="overflow-x-auto">
+      <table class="min-w-full border-collapse">
+        <thead>
+          <tr>
+            <th class="border border-gray-300 px-3 py-3 text-sm font-semibold text-gray-700 bg-gray-50">Sun</th>
+            <th class="border border-gray-300 px-3 py-3 text-sm font-semibold text-gray-700 bg-gray-50">Mon</th>
+            <th class="border border-gray-300 px-3 py-3 text-sm font-semibold text-gray-700 bg-gray-50">Tue</th>
+            <th class="border border-gray-300 px-3 py-3 text-sm font-semibold text-gray-700 bg-gray-50">Wed</th>
+            <th class="border border-gray-300 px-3 py-3 text-sm font-semibold text-gray-700 bg-gray-50">Thu</th>
+            <th class="border border-gray-300 px-3 py-3 text-sm font-semibold text-gray-700 bg-gray-50">Fri</th>
+            <th class="border border-gray-300 px-3 py-3 text-sm font-semibold text-gray-700 bg-gray-50">Sat</th>
+          </tr>
+        </thead>
+        <tbody>
+          <%
+            # Create calendar weeks starting from Sunday
+            first_sunday = @start_date - @start_date.wday
+            last_saturday = @end_date + (6 - @end_date.wday)
+            weeks = []
+            current_date = first_sunday
+            while current_date <= last_saturday
+              week = []
+              7.times do
+                week << current_date
+                current_date = current_date + 1
+              end
+              weeks << week
+            end
+          %>
+          <% weeks.each do |week| %>
+            <tr>
+              <% week.each do |date| %>
+                <% if date >= @start_date && date <= @end_date %>
+                  <% day_data = @calendar_data[date] %>
+                  <td class="border border-gray-300 px-2 py-2 text-center align-top <%= team_calendar_cell_class(day_data) %> cursor-pointer hover:shadow-lg transition-shadow"
+                      style="min-width: 120px; min-height: 100px;"
+                      onclick="showDayDetails('<%= date.strftime('%Y-%m-%d') %>')">
+                    <div class="text-sm font-semibold mb-2">
+                      <%= date.day %>
+                      <% if date == @today %>
+                        <span class="ml-1 text-xs bg-blue-600 text-white px-1 rounded">Today</span>
+                      <% end %>
+                    </div>
+
+                    <% if day_data[:is_weekend] %>
+                      <div class="text-xs text-gray-500">Weekend</div>
+                    <% elsif day_data[:is_global_holiday] %>
+                      <div class="text-xs text-orange-800 font-medium">
+                        🌍 <%= truncate(day_data[:global_holiday]&.name || "Global Holiday", length: 12) %>
+                      </div>
+                    <% else %>
+                      <div class="space-y-1">
+                        <div class="text-xs">
+                          <span class="text-green-700 font-medium">✓ <%= day_data[:available_count] %></span>
+                          <span class="text-gray-500">|</span>
+                          <span class="text-red-700 font-medium">✗ <%= day_data[:unavailable_count] %></span>
+                        </div>
+
+                        <% if day_data[:members_on_time_off].any? %>
+                          <div class="text-xs text-red-700">
+                            <% day_data[:members_on_time_off].first(2).each do |member| %>
+                              <div class="truncate"><%= member[:user].name.split(' ').first %></div>
+                            <% end %>
+                            <% if day_data[:members_on_time_off].length > 2 %>
+                              <div>+<%= day_data[:members_on_time_off].length - 2 %> more</div>
+                            <% end %>
+                          </div>
+                        <% end %>
+
+                        <% if day_data[:members_on_holiday].any? %>
+                          <div class="text-xs text-yellow-700">
+                            <% day_data[:members_on_holiday].first(2).each do |member| %>
+                              <div class="truncate"><%= member[:user].name.split(' ').first %></div>
+                            <% end %>
+                            <% if day_data[:members_on_holiday].length > 2 %>
+                              <div>+<%= day_data[:members_on_holiday].length - 2 %> more</div>
+                            <% end %>
+                          </div>
+                        <% end %>
+                      </div>
+                    <% end %>
+                  </td>
+                <% else %>
+                  <td class="border border-gray-300 bg-gray-50"></td>
+                <% end %>
+              <% end %>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Team Member List -->
+  <div class="bg-white rounded-lg shadow-md p-6">
+    <h2 class="text-xl font-semibold text-gray-900 mb-4">Team Members</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <% @users.each do |user| %>
+        <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+          <div class="flex justify-between items-start mb-2">
+            <h3 class="font-medium text-gray-900"><%= user.name %></h3>
+            <%= link_to "📅", user_availability_calendar_path(user),
+                class: "text-blue-600 hover:text-blue-800 text-lg",
+                title: "View #{user.name}'s calendar" %>
+          </div>
+          <p class="text-sm text-gray-600 mb-2">
+            <%= user.primary_strength %> / <%= user.secondary_strength %>
+          </p>
+          <% if user.capacity %>
+            <p class="text-xs text-gray-500">Capacity: <%= user.capacity %> hrs/week</p>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<!-- Day Details Modal -->
+<div id="dayDetailsModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 hidden">
+  <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+    <div class="mt-3">
+      <div class="flex justify-between items-center mb-4">
+        <h3 id="modalTitle" class="text-lg font-medium text-gray-900"></h3>
+        <button onclick="closeDayDetails()" class="text-gray-400 hover:text-gray-600">
+          <span class="sr-only">Close</span>
+          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div id="modalContent" class="space-y-4">
+        <!-- Content will be filled by JavaScript -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<% content_for :head do %>
+  <style>
+    .cell-all-available {
+      background-color: #dcfce7;
+      border-color: #22c55e;
+    }
+    .cell-mostly-available {
+      background-color: #fef3c7;
+      border-color: #eab308;
+    }
+    .cell-mostly-unavailable {
+      background-color: #fee2e2;
+      border-color: #ef4444;
+    }
+    .cell-mixed {
+      background-color: #fef3c7;
+      border-color: #f59e0b;
+    }
+    .cell-global-holiday {
+      background-color: #fed7aa;
+      border-color: #f97316;
+    }
+    .cell-weekend {
+      background-color: #f3f4f6;
+      border-color: #9ca3af;
+    }
+  </style>
+<% end %>
+
+<% content_for :javascript do %>
+  <script>
+    // Store calendar data for modal display
+    const calendarData = <%= raw @calendar_data.to_json %>;
+
+    function showDayDetails(dateStr) {
+      const date = new Date(dateStr);
+      const dayData = calendarData[dateStr];
+
+      if (!dayData) return;
+
+      // Format date for display
+      const formattedDate = date.toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+
+      document.getElementById('modalTitle').textContent = formattedDate;
+
+      let content = '';
+
+      if (dayData.is_weekend) {
+        content = '<p class="text-gray-600">This is a weekend day.</p>';
+      } else if (dayData.is_global_holiday && dayData.global_holiday) {
+        content = `
+          <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+            <h4 class="font-medium text-orange-900">🌍 Global Holiday</h4>
+            <p class="text-orange-800">${dayData.global_holiday.name}</p>
+            ${dayData.global_holiday.description ? `<p class="text-sm text-orange-700 mt-1">${dayData.global_holiday.description}</p>` : ''}
+          </div>
+        `;
+      } else {
+        // Available members
+        if (dayData.members_available && dayData.members_available.length > 0) {
+          content += `
+            <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+              <h4 class="font-medium text-green-900 mb-2">✓ Available (${dayData.available_count})</h4>
+              <div class="space-y-1">
+          `;
+          dayData.members_available.forEach(member => {
+            content += `<p class="text-sm text-green-800">${member.user.name}</p>`;
+          });
+          content += '</div></div>';
+        }
+
+        // Members on time off
+        if (dayData.members_on_time_off && dayData.members_on_time_off.length > 0) {
+          content += `
+            <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+              <h4 class="font-medium text-red-900 mb-2">✗ On Time Off</h4>
+              <div class="space-y-2">
+          `;
+          dayData.members_on_time_off.forEach(member => {
+            content += `
+              <div class="text-sm">
+                <p class="text-red-800 font-medium">${member.user.name}</p>
+                <p class="text-red-700">${member.status.reason}</p>
+                ${member.status.details ? `<p class="text-xs text-red-600">${member.status.details}</p>` : ''}
+              </div>
+            `;
+          });
+          content += '</div></div>';
+        }
+
+        // Members on holiday
+        if (dayData.members_on_holiday && dayData.members_on_holiday.length > 0) {
+          content += `
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <h4 class="font-medium text-yellow-900 mb-2">✗ On Personal Holiday</h4>
+              <div class="space-y-2">
+          `;
+          dayData.members_on_holiday.forEach(member => {
+            content += `
+              <div class="text-sm">
+                <p class="text-yellow-800 font-medium">${member.user.name}</p>
+                <p class="text-yellow-700">${member.status.reason}</p>
+              </div>
+            `;
+          });
+          content += '</div></div>';
+        }
+      }
+
+      document.getElementById('modalContent').innerHTML = content;
+      document.getElementById('dayDetailsModal').classList.remove('hidden');
+    }
+
+    function closeDayDetails() {
+      document.getElementById('dayDetailsModal').classList.add('hidden');
+    }
+
+    // Close modal when clicking outside
+    document.getElementById('dayDetailsModal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeDayDetails();
+      }
+    });
+  </script>
+<% end %>

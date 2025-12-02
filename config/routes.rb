@@ -27,6 +27,7 @@ Rails.application.routes.draw do
         get :bulk_upload
         post :process_bulk_upload
         get :download_template
+        get :export_to_jira
       end
       resources :stories, except: [:index, :show] do
         member do
@@ -58,6 +59,7 @@ Rails.application.routes.draw do
       delete :remove_member
     end
     resources :availability_calendar, only: [:index], controller: "availability_calendar"
+    resources :team_calendar, only: [:index], controller: "team_calendar"
   end
   
   # Availability Calendar

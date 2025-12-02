@@ -1,6 +1,6 @@
 class EpicsController < ApplicationController
   before_action :set_project
-  before_action :set_epic, only: [:edit, :update, :destroy, :bulk_upload, :process_bulk_upload, :download_template]
+  before_action :set_epic, only: [:edit, :update, :destroy, :bulk_upload, :process_bulk_upload, :download_template, :export_to_jira]
 
   def create
     @epic = @project.epics.build(epic_params)
@@ -79,8 +79,20 @@ class EpicsController < ApplicationController
 
   def download_template
     csv_content = BulkUploadService.generate_template
-    send_data csv_content, 
+    send_data csv_content,
               filename: "bulk_upload_template_#{Date.today}.csv",
+              type: "text/csv",
+              disposition: "attachment"
+  end
+
+  def export_to_jira
+    service = JiraCsvExportService.new(@epic)
+    csv_content = service.export_to_csv
+
+    filename = "jira_import_#{@epic.name.parameterize}_#{Date.today.strftime('%Y%m%d')}.csv"
+
+    send_data csv_content,
+              filename: filename,
               type: "text/csv",
               disposition: "attachment"
   end
