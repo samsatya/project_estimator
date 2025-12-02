@@ -40,14 +40,39 @@ class EpicsController < ApplicationController
     end
 
     csv_content = params[:csv_file].read
+
+    # Handle encoding issues by detecting and converting to UTF-8
+    begin
+      # Try to detect encoding and convert to UTF-8
+      csv_content = csv_content.force_encoding('UTF-8')
+
+      # If it's not valid UTF-8, try common encodings
+      unless csv_content.valid_encoding?
+        # Try Windows-1252 (common for Excel files)
+        csv_content = params[:csv_file].read.force_encoding('Windows-1252').encode('UTF-8', invalid: :replace, undef: :replace, replace: '')
+      end
+    rescue Encoding::UndefinedConversionError, Encoding::InvalidByteSequenceError
+      # Fall back to ASCII-8BIT and force conversion
+      csv_content = params[:csv_file].read.force_encoding('ASCII-8BIT').encode('UTF-8', invalid: :replace, undef: :replace, replace: '')
+    end
+
     service = BulkUploadService.new(@epic)
-    
-    if service.import_from_csv(csv_content)
-      notice = "Bulk upload completed successfully! "
-      notice += "Imported #{service.imported_count[:stories]} stories and #{service.imported_count[:subtasks]} subtasks."
-      redirect_to @project, notice: notice
-    else
-      @errors = service.errors
+
+    begin
+      Rails.logger.info "Starting CSV import for epic: #{@epic.name}"
+      if service.import_from_csv(csv_content)
+        notice = "Bulk upload completed successfully! "
+        notice += "Imported #{service.imported_count[:stories]} stories and #{service.imported_count[:subtasks]} subtasks."
+        Rails.logger.info "CSV import successful: #{service.imported_count}"
+        redirect_to @project, notice: notice
+      else
+        @errors = service.errors
+        Rails.logger.error "CSV import failed with errors: #{@errors.join(', ')}"
+        render :bulk_upload, status: :unprocessable_entity
+      end
+    rescue StandardError => e
+      @errors = ["An error occurred while processing the CSV: #{e.message}"]
+      Rails.logger.error "CSV import exception: #{e.message}\n#{e.backtrace.first(5).join('\n')}"
       render :bulk_upload, status: :unprocessable_entity
     end
   end
@@ -64,10 +89,17 @@ class EpicsController < ApplicationController
 
   def set_project
     @project = Project.find(params[:project_id])
+  rescue ActiveRecord::RecordNotFound
+    redirect_to root_path, alert: "Project not found."
   end
 
   def set_epic
+    Rails.logger.info "Attempting to find epic with ID: #{params[:id]} for project: #{@project&.id}"
     @epic = @project.epics.find(params[:id])
+    Rails.logger.info "Successfully found epic: #{@epic.name}"
+  rescue ActiveRecord::RecordNotFound => e
+    Rails.logger.error "Epic not found: #{e.message}. Project: #{@project&.id}, Epic ID: #{params[:id]}"
+    redirect_to @project, alert: "Epic not found (ID: #{params[:id]})."
   end
 
       def epic_params

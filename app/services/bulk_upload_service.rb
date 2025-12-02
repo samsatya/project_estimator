@@ -8,9 +8,17 @@ class BulkUploadService
   end
 
   def import_from_csv(csv_content)
-    
+
     begin
+      # Handle encoding issues by converting to UTF-8
+      if csv_content.respond_to?(:encoding)
+        # Force encoding to UTF-8, replacing invalid characters
+        csv_content = csv_content.encode('UTF-8', invalid: :replace, undef: :replace, replace: '')
+      end
+
+      Rails.logger.info "Parsing CSV content with #{csv_content.lines.count} lines"
       csv = CSV.parse(csv_content, headers: true, header_converters: :symbol)
+      Rails.logger.info "CSV parsed successfully with headers: #{csv.headers}"
       
       if csv.headers.empty?
         @errors << "CSV file is empty or invalid"
@@ -39,6 +47,8 @@ class BulkUploadService
           story_assigned_to = row[:story_assigned_to]&.to_s&.strip
           story_status = row[:story_status]&.to_s&.strip&.downcase
           story_task_type = row[:story_task_type]&.to_s&.strip
+          story_start_date = parse_date(row[:story_start_date])
+          story_end_date = parse_date(row[:story_end_date])
 
           if story_name.blank?
             @errors << "Row #{row_number}: Story name cannot be blank"
@@ -50,23 +60,48 @@ class BulkUploadService
             next
           end
 
+          # Validate dates if provided
+          if row[:story_start_date].present? && story_start_date.nil?
+            @errors << "Row #{row_number}: Invalid start date format. Use YYYY-MM-DD (e.g., 2025-01-15) or MM/DD/YYYY format"
+            next
+          end
+
+          if row[:story_end_date].present? && story_end_date.nil?
+            @errors << "Row #{row_number}: Invalid end date format. Use YYYY-MM-DD (e.g., 2025-01-15) or MM/DD/YYYY format"
+            next
+          end
+
+          # Validate date logic
+          if story_start_date.present? && story_end_date.present? && story_start_date > story_end_date
+            @errors << "Row #{row_number}: Start date cannot be after end date"
+            next
+          end
+
           # Create or find story
           current_story = @epic.stories.find_or_initialize_by(name: story_name)
           current_story.points = story_points
           current_story.description = story_description if story_description.present?
           current_story.status = story_status if story_status.present?
           current_story.task_type = story_task_type if story_task_type.present? && Story::TASK_TYPES.include?(story_task_type)
+          current_story.start_date = story_start_date if story_start_date.present?
+          current_story.end_date = story_end_date if story_end_date.present?
           
           # Assign user if provided
           if story_assigned_to.present?
             user = User.find_by("LOWER(name) = ? OR LOWER(email) = ?", story_assigned_to.downcase, story_assigned_to.downcase)
-            current_story.assigned_user = user if user
+            if user
+              current_story.assigned_user = user
+              Rails.logger.info "Assigned user '#{user.name}' to story '#{story_name}'"
+            else
+              Rails.logger.warn "User not found: '#{story_assigned_to}' for story '#{story_name}'"
+            end
           end
 
           is_new_record = current_story.new_record?
           
           unless current_story.save
             @errors << "Row #{row_number}: Story '#{story_name}' - #{current_story.errors.full_messages.join(', ')}"
+            Rails.logger.error "Story validation failed for '#{story_name}': #{current_story.errors.full_messages}"
             next
           end
 
@@ -109,6 +144,7 @@ class BulkUploadService
 
           unless subtask.save
             @errors << "Row #{row_number}: Subtask '#{subtask_name}' - #{subtask.errors.full_messages.join(', ')}"
+            Rails.logger.error "Subtask validation failed for '#{subtask_name}': #{subtask.errors.full_messages}"
             next
           end
 
@@ -116,12 +152,15 @@ class BulkUploadService
         end
       end
 
+      Rails.logger.info "CSV processing completed. Errors: #{@errors.count}, Stories imported: #{@imported_count[:stories]}, Subtasks imported: #{@imported_count[:subtasks]}"
       @errors.empty?
     rescue CSV::MalformedCSVError => e
       @errors << "Invalid CSV format: #{e.message}"
+      Rails.logger.error "CSV malformed: #{e.message}"
       false
     rescue StandardError => e
       @errors << "Error processing CSV: #{e.message}"
+      Rails.logger.error "CSV processing error: #{e.message}\n#{e.backtrace.first(3).join('\n')}"
       false
     end
   end
@@ -137,6 +176,8 @@ class BulkUploadService
         "Story Assigned To",
         "Story Status",
         "Story Task Type",
+        "Story Start Date",
+        "Story End Date",
         "Subtask Name",
         "Subtask Estimated Hours",
         "Subtask Description",
@@ -153,6 +194,8 @@ class BulkUploadService
         "john@example.com",
         "not_started",
         "Backend",
+        "2025-01-06",
+        "2025-01-10",
         "Create login form",
         "4",
         "Design and implement login UI",
@@ -160,8 +203,10 @@ class BulkUploadService
         "not_started",
         "UI"
       ]
-      
+
       csv << [
+        "",
+        "",
         "",
         "",
         "",
@@ -175,7 +220,7 @@ class BulkUploadService
         "not_started",
         "UI"
       ]
-      
+
       csv << [
         "User Dashboard",
         "8",
@@ -183,6 +228,8 @@ class BulkUploadService
         "bob@example.com",
         "in_progress",
         "Full-stack",
+        "2025-01-13",
+        "2025-01-20",
         "Design dashboard layout",
         "8",
         "Create wireframes and design",
@@ -204,9 +251,42 @@ class BulkUploadService
 
   def parse_hours(value)
     return nil if value.blank?
-    
+
     hours = value.to_s.strip.to_f
     hours > 0 ? hours : nil
+  end
+
+  def parse_date(value)
+    return nil if value.blank?
+
+    begin
+      # Try to parse various date formats
+      date_string = value.to_s.strip
+
+      # Common date formats
+      date_formats = [
+        '%Y-%m-%d',     # 2025-01-15
+        '%m/%d/%Y',     # 01/15/2025
+        '%d/%m/%Y',     # 15/01/2025
+        '%m-%d-%Y',     # 01-15-2025
+        '%d-%m-%Y',     # 15-01-2025
+        '%Y/%m/%d'      # 2025/01/15
+      ]
+
+      date_formats.each do |format|
+        begin
+          return Date.strptime(date_string, format)
+        rescue ArgumentError
+          next
+        end
+      end
+
+      # Try Ruby's built-in date parsing as fallback
+      Date.parse(date_string)
+    rescue ArgumentError => e
+      # If all parsing fails, return nil and let validation handle it
+      nil
+    end
   end
 end
 

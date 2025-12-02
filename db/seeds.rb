@@ -5,9 +5,9 @@
 # Create sample users for login
 users_data = [
   {
-    name: "John Doe",
-    email: "john@example.com",
-    password: "password123",
+    name: "Subrat",
+    email: "subrat.kp@samsung.com",
+    password: "monkey",
     primary_strength: "Backend",
     secondary_strength: "Full-stack",
     capacity: 40
@@ -15,26 +15,90 @@ users_data = [
   {
     name: "Jane Smith",
     email: "jane@example.com",
-    password: "password123",
+    password: "monkey",
     primary_strength: "Frontend",
     secondary_strength: "Design",
     capacity: 40
   },
   {
-    name: "Bob Johnson",
-    email: "bob@example.com",
-    password: "password123",
+    name: "Satya Kota",
+    email: "satya.n@samsung.com",
+    password: "monkey",
     primary_strength: "Full-stack",
     secondary_strength: "Backend",
-    capacity: 35
+    capacity: 32,
+    role: "manager"
   },
   {
     name: "Alice Williams",
     email: "alice@example.com",
-    password: "password123",
+    password: "monkey",
     primary_strength: "QA",
     secondary_strength: "Frontend",
     capacity: 40
+  },
+  {
+    name: "Subrat Kumar",
+    email: "subrat.kp@samsung.com",
+    password: "monkey",
+    primary_strength: "Backend",
+    secondary_strength: "Full-stack",
+    capacity: 40,
+    role: "team_member"
+  },
+  {
+    name: "Joyston Fernandes",
+    email: "joyston.f@samsung.com",
+    password: "monkey",
+    primary_strength: "Frontend",
+    secondary_strength: "Backend",
+    capacity: 40,
+    role: "team_member"
+  },
+  {
+    name: "Udayan Chakraborty",
+    email: "udayan.c@samsung.com",
+    password: "monkey",
+    primary_strength: "Full-stack",
+    secondary_strength: "Backend",
+    capacity: 40,
+    role: "team_member"
+  },
+  {
+    name: "Akshat Sharma",
+    email: "akshat.8797@samsung.com",
+    password: "monkey",
+    primary_strength: "Backend",
+    secondary_strength: "DevOps",
+    capacity: 40,
+    role: "team_member"
+  },
+  {
+    name: "Sapaliga",
+    email: "s.sapaliga@samsung.com",
+    password: "monkey",
+    primary_strength: "QA",
+    secondary_strength: "Frontend",
+    capacity: 40,
+    role: "team_member"
+  },
+  {
+    name: "Rishabh Mehta",
+    email: "rishabh.m@samsung.com",
+    password: "monkey",
+    primary_strength: "Frontend",
+    secondary_strength: "Design",
+    capacity: 40,
+    role: "team_member"
+  },
+  {
+    name: "Amit Choudhury",
+    email: "a.choudhury@samsung.com",
+    password: "monkey",
+    primary_strength: "Backend",
+    secondary_strength: "Full-stack",
+    capacity: 40,
+    role: "team_member"
   }
 ]
 

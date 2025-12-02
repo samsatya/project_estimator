@@ -84,5 +84,4 @@ class CapacityCalculator
     }
   end
 end
-end
 

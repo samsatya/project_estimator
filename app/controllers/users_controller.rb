@@ -32,8 +32,11 @@ class UsersController < ApplicationController
   end
 
   def destroy
-    @user.destroy
-    redirect_to team_members_path, notice: "User was successfully deleted."
+    if @user.destroy
+      redirect_to team_members_path, notice: "User was successfully deleted."
+    else
+      redirect_to team_members_path, alert: "Unable to delete user: #{@user.errors.full_messages.join(', ')}"
+    end
   end
 
   private
