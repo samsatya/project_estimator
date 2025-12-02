@@ -12,6 +12,11 @@
       <% else %>
         <%= link_to "Setup Jira", jira_config_project_path(@project), class: "bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded-lg" %>
       <% end %>
+      <% if @project.aws_configured? %>
+        <%= link_to "AWS Config", aws_config_project_path(@project), class: "bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg" %>
+      <% else %>
+        <%= link_to "Setup AWS", aws_config_project_path(@project), class: "bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg" %>
+      <% end %>
       <%= link_to "Gantt Chart", gantt_chart_project_path(@project), class: "bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg" %>
       <%= link_to "Pivot Report", pivot_report_project_path(@project), class: "bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded-lg" %>
       <%= link_to "Export to Excel", export_project_path(@project, format: :xlsx), class: "bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg" %>
@@ -26,7 +31,7 @@
         <div>
           <h3 class="text-lg font-semibold text-orange-900 mb-1">Jira Integration</h3>
           <p class="text-sm text-orange-800">
-            Project: <strong><%= @project.jira_project_key %></strong> | 
+            Project: <strong><%= @project.jira_project_key %></strong> |
             Site: <strong><%= @project.jira_site_url %></strong>
             <% if @project.sync_enabled? %>
               <span class="ml-2 bg-green-100 text-green-800 px-2 py-1 rounded text-xs">Auto-sync enabled</span>
@@ -78,7 +83,7 @@
       <% else %>
         <p class="text-gray-500 text-sm mb-4">No teams assigned</p>
       <% end %>
-      
+
       <% if @available_teams.any? %>
         <%= form_with url: add_team_project_path(@project), method: :post, class: "flex gap-2" do |form| %>
           <%= form.select :team_id, @available_teams.map { |t| [t.name, t.id] }, { prompt: "Select team" }, { class: "flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" } %>
@@ -104,7 +109,7 @@
       <% else %>
         <p class="text-gray-500 text-sm mb-4">No individual team members assigned</p>
       <% end %>
-      
+
       <% if @available_users.any? %>
         <%= form_with url: add_team_member_project_path(@project), method: :post, class: "flex gap-2" do |form| %>
           <%= form.select :user_id, @available_users.map { |u| [u.name, u.id] }, { prompt: "Select team member" }, { class: "flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" } %>
@@ -199,9 +204,12 @@
 
   <div class="mb-6">
     <h2 class="text-2xl font-bold text-gray-900 mb-4">Epics</h2>
-    
+
     <% @epics.each do |epic| %>
-      <div class="bg-white rounded-lg shadow-md p-6 mb-4">
+      <div class="bg-white rounded-lg shadow-md p-6 mb-4" data-controller="story-generator"
+           data-story-generator-url-value="<%= generate_stories_project_epic_path(@project, epic) %>"
+           data-story-generator-project-id-value="<%= @project.id %>"
+           data-story-generator-epic-id-value="<%= epic.id %>">
         <div class="flex justify-between items-start mb-4">
           <div>
             <h3 class="text-xl font-semibold text-gray-900">
@@ -230,7 +238,15 @@
         <div class="ml-4">
           <div class="flex justify-between items-center mb-3">
             <h4 class="text-lg font-medium text-gray-800">Stories</h4>
-            <%= button_to "Add Story", new_project_epic_story_path(@project, epic), method: :get, class: "bg-green-600 hover:bg-green-700 text-white text-sm font-bold py-1 px-3 rounded" %>
+            <div class="flex space-x-2">
+              <button type="button" class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold py-1 px-3 rounded flex items-center" data-action="click->story-generator#generate">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                </svg>
+                Generate Stories
+              </button>
+              <%= button_to "Add Story", new_project_epic_story_path(@project, epic), method: :get, class: "bg-green-600 hover:bg-green-700 text-white text-sm font-bold py-1 px-3 rounded" %>
+            </div>
           </div>
 
           <% epic.stories.each do |story| %>
@@ -260,7 +276,7 @@
                     <% end %>
                   </div>
                   <p class="text-sm text-gray-600 mb-2"><%= story.description %></p>
-                  
+
                   <div class="ml-4">
                     <div class="flex justify-between items-center mb-2">
                       <h6 class="text-sm font-medium text-gray-700">Subtasks</h6>
@@ -298,6 +314,30 @@
             </div>
           <% end %>
         </div>
+
+        <!-- Story Generation Modal -->
+        <div class="fixed z-10 inset-0 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true" data-story-generator-target="modal">
+          <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full sm:p-6">
+              <div data-story-generator-target="modalContent">
+                <!-- Content injected by controller -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Loading State -->
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50 hidden" data-story-generator-target="loading">
+          <div class="bg-white p-5 rounded-lg flex items-center space-x-3">
+            <svg class="animate-spin h-5 w-5 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span class="text-gray-700 font-medium">Generating stories with AI...</span>
+          </div>
+        </div>
       </div>
     <% end %>
 
@@ -315,4 +355,3 @@
     </div>
   </div>
 </div>
-

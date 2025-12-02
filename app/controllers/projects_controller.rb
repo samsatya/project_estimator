@@ -1,5 +1,5 @@
 class ProjectsController < ApplicationController
-  before_action :set_project, only: [:show, :edit, :update, :destroy, :dashboard, :add_team_member, :remove_team_member, :add_team, :remove_team, :export, :gantt_chart, :pivot_report, :jira_config, :update_jira_config, :test_jira_connection, :sync_to_jira, :sync_from_jira]
+  before_action :set_project, only: [ :show, :edit, :update, :destroy, :dashboard, :add_team_member, :remove_team_member, :add_team, :remove_team, :export, :gantt_chart, :pivot_report, :jira_config, :update_jira_config, :test_jira_connection, :sync_to_jira, :sync_from_jira, :aws_config, :update_aws_config ]
 
   def index
     @projects = Project.all.order(created_at: :desc)
@@ -87,10 +87,10 @@ class ProjectsController < ApplicationController
     @by_epic = @calculator.by_epic
     @by_team_member = @calculator.by_team_member
     @epics = @project.epics.ordered.includes(:stories, :project)
-    
+
     respond_to do |format|
       format.xlsx {
-        response.headers['Content-Disposition'] = "attachment; filename=\"#{@project.name.parameterize}_estimation_#{Date.today}.xlsx\""
+        response.headers["Content-Disposition"] = "attachment; filename=\"#{@project.name.parameterize}_estimation_#{Date.today}.xlsx\""
       }
     end
   end
@@ -176,6 +176,18 @@ class ProjectsController < ApplicationController
     @users = @project.users
   end
 
+  def aws_config
+    # Show AWS configuration form
+  end
+
+  def update_aws_config
+    if @project.update(aws_config_params)
+      redirect_to @project, notice: "AWS configuration updated successfully."
+    else
+      render :aws_config, status: :unprocessable_entity
+    end
+  end
+
   private
 
   def set_project
@@ -190,5 +202,9 @@ class ProjectsController < ApplicationController
 
   def jira_config_params
     params.require(:project).permit(:jira_site_url, :jira_username, :jira_api_token, :jira_project_key, :sync_enabled)
+  end
+
+  def aws_config_params
+    params.require(:project).permit(:aws_access_key_id, :aws_secret_access_key, :aws_region, :aws_model_id)
   end
 end
