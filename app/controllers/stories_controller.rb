@@ -26,6 +26,8 @@ class StoriesController < ApplicationController
     if @story.update(story_params)
       redirect_to @project, notice: "Story was successfully updated."
     else
+      @suggester = AssignmentSuggester.new(@project, @story)
+      @suggestions = @suggester.suggest
       render :edit, status: :unprocessable_entity
     end
   end

@@ -1,0 +1,36 @@
+Story Name,Story Points,Story Description,Story Assigned To,Story Status,Story Task Type,Story Start Date,Story End Date
+Approval Status UI + Backend Consumer,8,Frontend and Backend components for approval status consumer,Joyston Fernandes,not_started,Full-stack,2025-12-13,2025-12-26
+OMS Compatible Toggle,8,Toggle functionality for OMS compatibility,Joyston Fernandes,in_progress,Full-stack,2025-12-01,2025-12-12
+Approval Status button UX,1,Product UX for approval status button,Neeraj Ravindra,not_started,UI,,2025-12-12
+Changes in line item Listing table in plans with status column and custom ordering,13,Update listing table with status column and ordering,Rishabh Mishra,not_started,Full-stack,2025-12-01,2025-12-19
+Changes in line items section with push info ribbon,8,Line items section updates with push info ribbon,Subrat Pattanaik,not_started,Full-stack,2025-12-31,2026-01-11
+Plan OMS Push Modal,13,Modal for OMS push functionality,Rishabh Mishra,not_started,Full-stack,2025-12-20,2026-01-12
+OMS Push button to backend call to SOMS and Validation,13,Backend integration for OMS push with validation,Rishabh Mishra,not_started,Backend,2026-01-13,2026-02-05
+Polling implementation through UI with proper timeout,13,UI polling implementation with timeout handling,Akshat 8797,not_started,Full-stack,2025-12-26,2026-01-15
+OMS Compatible Line Items + Testing,21,Complete OMS compatible line items with testing,Subrat Pattanaik,in_progress,Full-stack,2025-11-10,2025-12-30
+Product based Custom Validation,3,Custom validation based on product requirements,Joyston Fernandes,not_started,Backend,2025-12-27,2025-12-30
+Rate type based custom validation,2,Validation logic for rate types,Joyston Fernandes,not_started,Backend,2025-12-31,2026-01-05
+Country based custom validation,2,Validation logic for country-based rules,Joyston Fernandes,not_started,Backend,2026-01-06,2026-01-08
+Line Item OMS Push Modal,5,Modal for line item OMS push,Subrat Pattanaik,not_started,Full-stack,2026-01-12,2026-01-19
+LI Push button to backend call to SOMS and Validation,8,Line item push backend integration with SOMS,Subrat Pattanaik,not_started,Backend,2026-01-20,2026-01-29
+Feature flag,3,Implementation of feature flag system,Joyston Fernandes,not_started,Backend,2026-01-09,2026-01-14
+Push option in Final Page Listing,8,Push option functionality in final page listing,Subrat Pattanaik,not_started,Full-stack,2026-01-30,2026-02-10
+Validation update for Unmark as final using push status success value,5,Update validation logic for unmark final functionality,Akshat 8797,not_started,Backend,2026-01-16,2026-01-24
+LI Push Contract Discussion,1,Contract discussion for line item push,Sushan Suresh Sapaliga,not_started,Planning,2025-12-18,2025-12-19
+OMS Push Notification,13,Notification system for OMS push operations,Akshat 8797,not_started,Full-stack,2025-12-01,2025-12-25
+E2E Testing,13,End-to-end testing suite,Sushan Suresh Sapaliga,not_started,Testing,2026-02-10,2026-02-28
+UAT testing,8,User acceptance testing,Neeraj Ravindra,not_started,Testing,2026-02-28,2026-03-10
+Create Drops (Adapter),3,SOMS adapter for creating drops,Anunay Choudhury,completed,Backend,2025-11-20,2025-11-26
+Create an endpoint so that planning service can push line item ids,1,Endpoint for planning service integration,Anunay Choudhury,completed,Backend,2025-11-20,2026-01-30
+Create a client to SOMS as a package for planning backend,3,SOMS client package for planning backend,Anunay Choudhury,completed,Backend,2025-11-20,2026-01-30
+Write a planning service client,3,Planning service client implementation,Anunay Choudhury,not_started,Backend,2025-11-20,2026-01-30
+S2S Auth with trader for pulling conversion groups via GQL,3,Service-to-service authentication with trader,Anunay Choudhury,completed,Backend,2025-11-20,2026-01-30
+Implement blocking mechanism to prevent concurrent requests to push LI to OMS,3,Concurrent request blocking mechanism,Sushan Suresh Sapaliga,completed,Backend,2025-11-20,2025-11-27
+Pull Drops List for an Order id and check for avoiding duplicates,3,Drops list retrieval with duplicate checking,Anunay Choudhury,in_progress,Backend,2025-11-20,2026-01-30
+Kafka producer and push data via topic (Approval),2,Kafka integration for approval topic,Akshat 8797,not_started,Backend,2025-11-20,2026-01-30
+One endpoint for querying Order Approval flow,3,Order approval flow query endpoint,Akshat 8797,in_progress,Backend,2025-11-20,2026-01-30
+Transforming line items to drops,8,Line item to drops transformation logic,Sushan Suresh Sapaliga,in_progress,Backend,2025-11-20,2026-01-30
+Notify planning service about completion of plan push,1,Notification system for plan push completion,Anunay Choudhury,not_started,Backend,2025-11-20,2026-01-30
+Unit tests,3,Unit test suite for SOMS integration,Anunay Choudhury,not_started,Testing,2025-11-20,2026-01-30
+Integration tests,3,Integration test suite for SOMS,Sushan Suresh Sapaliga,not_started,Testing,2025-11-20,2026-01-30
+Acceptance Test for plan-sync,5,Acceptance testing for plan synchronization,Sushan Suresh Sapaliga,not_started,Testing,2026-01-25,2026-01-30

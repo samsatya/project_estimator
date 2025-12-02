@@ -27,6 +27,8 @@ class SubtasksController < ApplicationController
     if @subtask.update(subtask_params)
       redirect_to @project, notice: "Subtask was successfully updated."
     else
+      @suggester = AssignmentSuggester.new(@project, @subtask)
+      @suggestions = @suggester.suggest
       render :edit, status: :unprocessable_entity
     end
   end

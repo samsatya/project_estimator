@@ -10,7 +10,8 @@
   </div>
 
   <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-    <div id="gantt-container" class="overflow-x-auto"></div>
+    <h2 class="text-xl font-semibold mb-4">Timeline View</h2>
+    <div id="gantt-container" class="overflow-x-auto min-h-96 border border-gray-200 rounded-lg p-4"></div>
   </div>
 
   <div class="bg-white rounded-lg shadow-md p-6">
@@ -48,9 +49,11 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/frappe-gantt@0.6.1/dist/frappe-gantt.css">
 
 <script>
-  document.addEventListener('turbo:load', () => {
+  document.addEventListener('DOMContentLoaded', () => {
+    console.log('Gantt chart initialization started...');
+
     const ganttData = [];
-    
+
     <% @epics.each do |epic| %>
       <% if epic.start_date && epic.end_date %>
         ganttData.push({
@@ -70,50 +73,150 @@
             start: '<%= story.start_date.strftime("%Y-%m-%d") %>',
             end: '<%= story.end_date.strftime("%Y-%m-%d") %>',
             progress: <%= story.status == 'completed' ? 100 : (story.status == 'in_progress' ? 50 : 0) %>,
-            custom_class: 'story-bar',
-            dependencies: 'epic-<%= epic.id %>'
+            custom_class: 'story-bar'
           });
         <% end %>
       <% end %>
     <% end %>
 
+    console.log('Gantt data prepared:', ganttData.length, 'items');
+
     if (ganttData.length > 0) {
-      const gantt = new Gantt("#gantt-container", ganttData, {
-        view_mode: 'Month',
-        language: 'en',
-        header_height: 50,
-        column_width: 30,
-        step: 24,
-        bar_height: 20,
-        bar_corner_radius: 3,
-        arrow_curve: 5,
-        padding: 18,
-        date_format: 'YYYY-MM-DD',
-        on_click: function (task) {
-          console.log(task);
-        },
-        on_date_change: function(task, start, end) {
-          console.log(task, start, end);
-        },
-        on_progress_change: function(task, progress) {
-          console.log(task, progress);
-        },
-        on_view_change: function(mode) {
-          console.log(mode);
+      try {
+        // Clear any existing content
+        const container = document.getElementById('gantt-container');
+        container.innerHTML = '';
+
+        // Check if Gantt is available
+        if (typeof Gantt === 'undefined') {
+          console.error('Frappe Gantt library not loaded');
+          container.innerHTML = '<p class="text-red-600 text-center py-8">Gantt chart library failed to load. Please refresh the page.</p>';
+          return;
         }
-      });
+
+        const gantt = new Gantt("#gantt-container", ganttData, {
+          view_mode: 'Week',
+          language: 'en',
+          header_height: 50,
+          column_width: 40,
+          step: 24,
+          bar_height: 20,
+          bar_corner_radius: 3,
+          arrow_curve: 5,
+          padding: 18,
+          date_format: 'YYYY-MM-DD',
+          custom_popup_html: function(task) {
+            return `
+              <div class="details-container">
+                <h5>${task.name}</h5>
+                <p>Duration: ${task.start} to ${task.end}</p>
+                <p>Progress: ${task.progress}%</p>
+              </div>
+            `;
+          },
+          on_click: function (task) {
+            console.log('Clicked task:', task);
+          },
+          on_date_change: function(task, start, end) {
+            console.log('Date changed:', task, start, end);
+          },
+          on_progress_change: function(task, progress) {
+            console.log('Progress changed:', task, progress);
+          },
+          on_view_change: function(mode) {
+            console.log('View mode changed:', mode);
+          }
+        });
+
+        console.log('Gantt chart created successfully');
+
+        // Add view mode buttons
+        const viewControls = document.createElement('div');
+        viewControls.className = 'mb-4 text-center';
+        viewControls.innerHTML = `
+          <div class="inline-flex rounded-md shadow-sm" role="group">
+            <button type="button" onclick="gantt.change_view_mode('Day')" class="px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-l-lg hover:bg-gray-100">Day</button>
+            <button type="button" onclick="gantt.change_view_mode('Week')" class="px-4 py-2 text-sm font-medium text-gray-900 bg-blue-100 border-t border-b border-gray-200 hover:bg-gray-100">Week</button>
+            <button type="button" onclick="gantt.change_view_mode('Month')" class="px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-r-lg hover:bg-gray-100">Month</button>
+          </div>
+        `;
+
+        container.parentNode.insertBefore(viewControls, container);
+
+        // Make gantt globally accessible for the buttons
+        window.gantt = gantt;
+
+      } catch (error) {
+        console.error('Error creating Gantt chart:', error);
+        document.getElementById('gantt-container').innerHTML = '<p class="text-red-600 text-center py-8">Error creating Gantt chart: ' + error.message + '</p>';
+      }
     } else {
       document.getElementById('gantt-container').innerHTML = '<p class="text-gray-600 text-center py-8">No tasks with dates found. Please add start and end dates to epics and stories.</p>';
     }
   });
+
+  // Also listen for turbo events in case of navigation
+  document.addEventListener('turbo:load', () => {
+    // Add a small delay to ensure DOM is ready
+    setTimeout(() => {
+      if (document.getElementById('gantt-container') && !document.getElementById('gantt-container').innerHTML.trim()) {
+        // Re-trigger the initialization if container is empty
+        document.dispatchEvent(new Event('DOMContentLoaded'));
+      }
+    }, 100);
+  });
 </script>
 
 <style>
-  .epic-bar {
+  /* Gantt chart container styles */
+  #gantt-container {
+    background: #fafafa;
+  }
+
+  /* Epic and Story bar styles */
+  .epic-bar .bar {
     fill: #3b82f6 !important;
   }
-  .story-bar {
+  .story-bar .bar {
     fill: #10b981 !important;
+  }
+
+  /* Frappe Gantt overrides for better visibility */
+  .gantt .bar-wrapper .bar {
+    stroke: #fff;
+    stroke-width: 1;
+  }
+
+  .gantt .bar-wrapper .bar-progress {
+    fill: rgba(255, 255, 255, 0.3);
+  }
+
+  .gantt .bar-wrapper .bar-label {
+    fill: #333;
+    font-weight: 500;
+    font-size: 11px;
+  }
+
+  .gantt .grid-header {
+    fill: #f8f9fa;
+    stroke: #e9ecef;
+  }
+
+  .gantt .grid-row {
+    fill: transparent;
+    stroke: #e9ecef;
+  }
+
+  .gantt .today-highlight {
+    fill: rgba(59, 130, 246, 0.1);
+    stroke: #3b82f6;
+    stroke-width: 1;
+  }
+
+  /* View mode buttons */
+  .view-controls button.active {
+    background-color: #3b82f6 !important;
+    color: white !important;
   }
 </style>
 

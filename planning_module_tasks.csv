@@ -1,0 +1,36 @@
+Task,Type,System,Epic,PER,Estimate (person days),Estimated start date,Estimated completion date,Status,Assignee
+Approval Status UI + Backend Consumer,Frontend Backend,planning-module,,PER-5389,10,2025-12-13,2025-12-26,To do,Joyston Fernandes
+OMS Compatible Toggle,Frontend Backend,planning-module,,PER-5389,9,2025-12-01,2025-12-12,In Progress,Joyston Fernandes
+Approval Status button UX,Product,planning-module,,PER-5389,0,,2025-12-12,To do,Neeraj Ravindra
+Changes in line item Listing table in plans with status column and custom ordering,Frontend Backend,planning-module,,PER-5389,14,2025-12-01,2025-12-19,To do,Rishabh Mishra
+Changes in line items section with push info ribbon,Frontend Backend,planning-module,,PER-5389,9,2025-12-31,2026-01-11,To do,Subrat Pattanaik
+Plan OMS Push Modal,Frontend Backend,planning-module,,PER-5389,17,2025-12-20,2026-01-12,To do,Rishabh Mishra
+OMS Push button to backend call to SOMS and Validation,Frontend Backend,planning-module,,PER-5389,17,2026-01-13,2026-02-05,To do,Rishabh Mishra
+Polling implementation through UI with proper timeout,Frontend Backend,planning-module,,PER-5389,15,2025-12-26,2026-01-15,To do,Akshat 8797
+OMS Compatible Line Items + Testing,Frontend Backend,planning-module,,PER-5389,40,2025-11-10,2025-12-30,In Progress,Subrat Pattanaik
+Product based Custom Validation,Frontend Backend,planning-module,,PER-5389,3,2025-12-27,2025-12-30,To do,Joyston Fernandes
+Rate type based custom validation,Frontend Backend,planning-module,,PER-5389,2,2025-12-31,2026-01-05,To do,Joyston Fernandes
+Country based custom validation,Frontend Backend,planning-module,,PER-5389,2,2026-01-06,2026-01-08,To do,Joyston Fernandes
+Line Item OMS Push Modal,Frontend Backend,planning-module,,PER-5389,6,2026-01-12,2026-01-19,To do,Subrat Pattanaik
+LI Push button to backend call to SOMS and Validation,Frontend Backend,planning-module,,PER-5389,7,2026-01-20,2026-01-29,To do,Subrat Pattanaik
+Feature flag,Frontend Backend,planning-module,,PER-5389,3,2026-01-09,2026-01-14,To do,Joyston Fernandes
+Push option in Final Page Listing,Frontend Backend,planning-module,,PER-5389,8,2026-01-30,2026-02-10,To do,Subrat Pattanaik
+Validation update for Unmark as final using push status success value,Frontend Backend,planning-module,,PER-5389,6,2026-01-16,2026-01-24,To do,Akshat 8797
+LI Push Contract Discussion,Frontend Backend,planning-module,,PER-5389,0,,2025-12-19,To do,Sushan Suresh Sapaliga
+OMS Push Notification,Frontend Backend,planning-module,,PER-5389,19,2025-12-01,2025-12-25,To do,Akshat 8797
+E2E Testing,Frontend Backend,planning-module,,PER-5389,15,2026-02-10,2026-02-28,To do,
+UAT testing,Product,planning-module,,PER-5389,10,2026-02-28,2026-03-10,To do,
+Create Drops (Adapter),Backend,soms,PEDSP-24211,PER-5389,3,2025-11-20,2025-11-26,Done,Anunay Choudhury
+Create an endpoint so that planning service can push line item ids,Backend,soms,PEDSP-24211,PER-5389,1,2025-11-20,2026-01-30,Done,Anunay Choudhury
+Create a client to SOMS as a package for planning backend,Backend,soms,PEDSP-24211,PER-5389,3,2025-11-20,2026-01-30,Done,Anunay Choudhury
+Write a planning service client,Backend,soms,PEDSP-24211,PER-5389,3,2025-11-20,2026-01-30,To do,Anunay Choudhury
+S2S Auth with trader for pulling conversion groups via GQL,Backend,soms,PEDSP-24211,PER-5389,3,2025-11-20,2026-01-30,Done,Anunay Choudhury
+Implement blocking mechanism to prevent concurrent requests to push LI to OMS,Backend,soms,PEDSP-24211,PER-5389,3,2025-11-20,2025-11-27,Done,Sushan Suresh Sapaliga
+Pull Drops List for an Order id and check for avoiding duplicates,Backend,soms,PEDSP-24211,PER-5389,4,2025-11-20,2026-01-30,In Progress,Anunay Choudhury
+Kafka producer and push data via topic (Approval),Backend,soms,PEDSP-24211,PER-5389,2,2025-11-20,2026-01-30,To do,Akshat 8797
+One endpoint for querying Order Approval flow,Backend,soms,PEDSP-24211,PER-5389,3,2025-11-20,2026-01-30,In Progress,Akshat 8797
+Transforming line items to drops,Backend,soms,PEDSP-24211,PER-5389,10,2025-11-20,2026-01-30,In Progress,Sushan Suresh Sapaliga
+Notify planning service about completion of plan push,Backend,soms,PEDSP-24211,PER-5389,1,2025-11-20,2026-01-30,To do,Anunay Choudhury
+Unit tests,Backend,soms,PEDSP-24211,PER-5389,3,2025-11-20,2026-01-30,To do,Anunay Choudhury
+Integration tests,Backend,soms,PEDSP-24211,PER-5389,4,2025-11-20,2026-01-30,To do,Sushan Suresh Sapaliga
+Acceptance Test for plan-sync,Backend,soms,PEDSP-24211,PER-5389,5,2026-01-25,2026-01-30,To do,Sushan Suresh Sapaliga

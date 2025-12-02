@@ -156,6 +156,26 @@ class ProjectsController < ApplicationController
     end
   end
 
+  def gantt_chart
+    @epics = @project.epics.ordered.includes(:stories)
+    # Calculate dates if not set
+    @epics.each do |epic|
+      if epic.start_date.nil? || epic.end_date.nil?
+        story_dates = epic.stories.where.not(start_date: nil, end_date: nil)
+        if story_dates.any?
+          epic.start_date ||= story_dates.minimum(:start_date)
+          epic.end_date ||= story_dates.maximum(:end_date)
+        end
+      end
+    end
+  end
+
+  def pivot_report
+    @stories = @project.stories.includes(:epic, :assigned_user)
+    @epics = @project.epics.ordered
+    @users = @project.users
+  end
+
   private
 
   def set_project
@@ -168,27 +188,7 @@ class ProjectsController < ApplicationController
                                     :business_testing_time_percentage, :points_to_hours_conversion)
   end
 
-      def jira_config_params
-        params.require(:project).permit(:jira_site_url, :jira_username, :jira_api_token, :jira_project_key, :sync_enabled)
-      end
-
-      def gantt_chart
-        @epics = @project.epics.ordered.includes(:stories)
-        # Calculate dates if not set
-        @epics.each do |epic|
-          if epic.start_date.nil? || epic.end_date.nil?
-            story_dates = epic.stories.where.not(start_date: nil, end_date: nil)
-            if story_dates.any?
-              epic.start_date ||= story_dates.minimum(:start_date)
-              epic.end_date ||= story_dates.maximum(:end_date)
-            end
-          end
-        end
-      end
-
-      def pivot_report
-        @stories = @project.stories.includes(:epic, :assigned_user)
-        @epics = @project.epics.ordered
-        @users = @project.users
-      end
-    end
+  def jira_config_params
+    params.require(:project).permit(:jira_site_url, :jira_username, :jira_api_token, :jira_project_key, :sync_enabled)
+  end
+end
