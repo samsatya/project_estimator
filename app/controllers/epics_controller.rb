@@ -1,6 +1,6 @@
 class EpicsController < ApplicationController
   before_action :set_project
-  before_action :set_epic, only: [:edit, :update, :destroy, :bulk_upload, :process_bulk_upload, :download_template, :export_to_jira]
+  before_action :set_epic, only: [ :edit, :update, :destroy, :bulk_upload, :process_bulk_upload, :download_template, :export_to_jira, :refine_with_ai, :generate_stories ]
 
   def create
     @epic = @project.epics.build(epic_params)
@@ -44,16 +44,16 @@ class EpicsController < ApplicationController
     # Handle encoding issues by detecting and converting to UTF-8
     begin
       # Try to detect encoding and convert to UTF-8
-      csv_content = csv_content.force_encoding('UTF-8')
+      csv_content = csv_content.force_encoding("UTF-8")
 
       # If it's not valid UTF-8, try common encodings
       unless csv_content.valid_encoding?
         # Try Windows-1252 (common for Excel files)
-        csv_content = params[:csv_file].read.force_encoding('Windows-1252').encode('UTF-8', invalid: :replace, undef: :replace, replace: '')
+        csv_content = params[:csv_file].read.force_encoding("Windows-1252").encode("UTF-8", invalid: :replace, undef: :replace, replace: "")
       end
     rescue Encoding::UndefinedConversionError, Encoding::InvalidByteSequenceError
       # Fall back to ASCII-8BIT and force conversion
-      csv_content = params[:csv_file].read.force_encoding('ASCII-8BIT').encode('UTF-8', invalid: :replace, undef: :replace, replace: '')
+      csv_content = params[:csv_file].read.force_encoding("ASCII-8BIT").encode("UTF-8", invalid: :replace, undef: :replace, replace: "")
     end
 
     service = BulkUploadService.new(@epic)
@@ -71,7 +71,7 @@ class EpicsController < ApplicationController
         render :bulk_upload, status: :unprocessable_entity
       end
     rescue StandardError => e
-      @errors = ["An error occurred while processing the CSV: #{e.message}"]
+      @errors = [ "An error occurred while processing the CSV: #{e.message}" ]
       Rails.logger.error "CSV import exception: #{e.message}\n#{e.backtrace.first(5).join('\n')}"
       render :bulk_upload, status: :unprocessable_entity
     end
@@ -95,6 +95,44 @@ class EpicsController < ApplicationController
               filename: filename,
               type: "text/csv",
               disposition: "attachment"
+  end
+
+  # AI-powered epic refinement
+  def refine_with_ai
+    ai_service = EpicAiService.new(@epic)
+    result = ai_service.refine
+
+    if result[:success]
+      render json: {
+        success: true,
+        refined_name: result[:refined_name],
+        refined_description: result[:refined_description],
+        suggestions: result[:suggestions]
+      }
+    else
+      render json: {
+        success: false,
+        error: result[:error]
+      }, status: :unprocessable_entity
+    end
+  end
+
+  # AI-powered story generation from epic
+  def generate_stories
+    ai_service = EpicAiService.new(@epic)
+    result = ai_service.generate_stories
+
+    if result[:success]
+      render json: {
+        success: true,
+        stories: result[:stories]
+      }
+    else
+      render json: {
+        success: false,
+        error: result[:error]
+      }, status: :unprocessable_entity
+    end
   end
 
   private

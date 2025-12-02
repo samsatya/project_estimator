@@ -1,0 +1,58 @@
+<div class="max-w-2xl mx-auto">
+  <h1 class="text-3xl font-bold text-gray-900 mb-6">AWS Configuration</h1>
+
+  <div class="bg-white rounded-lg shadow-md p-6">
+    <div class="mb-6">
+      <h2 class="text-xl font-semibold text-gray-800 mb-2">Bedrock Integration</h2>
+      <p class="text-gray-600 text-sm">
+        Configure AWS credentials to enable AI-powered features using Amazon Bedrock (Claude Sonnet 4.5).
+        These credentials will be used for epic refinement, story generation, and estimation assistance.
+      </p>
+    </div>
+
+    <%= form_with model: @project, url: update_aws_config_project_path(@project), method: :patch do |form| %>
+      <% if @project.errors.any? %>
+        <div class="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
+          <ul class="list-disc list-inside text-red-700">
+            <% @project.errors.full_messages.each do |message| %>
+              <li><%= message %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+
+      <div class="space-y-4">
+        <div>
+          <%= form.label :aws_access_key_id, "AWS Access Key ID", class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <%= form.text_field :aws_access_key_id, class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" %>
+        </div>
+
+        <div>
+          <%= form.label :aws_secret_access_key, "AWS Secret Access Key", class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <%= form.password_field :aws_secret_access_key, value: @project.aws_secret_access_key, class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" %>
+          <p class="text-xs text-gray-500 mt-1">Stored securely using Rails encryption.</p>
+        </div>
+
+        <div>
+          <%= form.label :aws_region, "AWS Region", class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <%= form.select :aws_region,
+              ["us-east-1", "us-west-2", "eu-central-1", "ap-northeast-1", "ap-southeast-1", "ap-southeast-2"],
+              {},
+              class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" %>
+          <p class="text-xs text-gray-500 mt-1">Region where Bedrock models are enabled.</p>
+        </div>
+
+        <div>
+          <%= form.label :aws_model_id, "Bedrock Model ID", class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <%= form.text_field :aws_model_id, class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" %>
+          <p class="text-xs text-gray-500 mt-1">Default: us.anthropic.claude-sonnet-4-20250514-v1:0</p>
+        </div>
+      </div>
+
+      <div class="mt-8 flex justify-end space-x-4">
+        <%= link_to "Cancel", @project, class: "bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg" %>
+        <%= form.submit "Save Configuration", class: "bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg" %>
+      </div>
+    <% end %>
+  </div>
+</div>

@@ -10,11 +10,13 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_12_01_125437) do
+ActiveRecord::Schema[8.1].define(version: 2025_12_02_182849) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
   create_table "epics", force: :cascade do |t|
+    t.boolean "ai_generated", default: false
+    t.datetime "ai_refined_at"
     t.datetime "created_at", null: false
     t.text "description"
     t.date "end_date"
@@ -22,6 +24,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_01_125437) do
     t.string "jira_epic_key"
     t.datetime "last_synced_at"
     t.string "name"
+    t.text "original_description"
     t.integer "position"
     t.bigint "project_id", null: false
     t.date "start_date"
@@ -60,6 +63,10 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_01_125437) do
   end
 
   create_table "projects", force: :cascade do |t|
+    t.string "aws_access_key_id"
+    t.string "aws_model_id", default: "us.anthropic.claude-sonnet-4-20250514-v1:0"
+    t.string "aws_region", default: "us-east-1"
+    t.string "aws_secret_access_key"
     t.decimal "business_testing_time_percentage", precision: 5, scale: 2, default: "0.15"
     t.datetime "created_at", null: false
     t.text "description"
@@ -80,6 +87,9 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_01_125437) do
   end
 
   create_table "stories", force: :cascade do |t|
+    t.boolean "ai_generated", default: false
+    t.datetime "ai_refined_at"
+    t.integer "ai_suggested_points"
     t.bigint "assigned_user_id"
     t.datetime "created_at", null: false
     t.text "description"
@@ -90,6 +100,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_01_125437) do
     t.string "jira_issue_key"
     t.datetime "last_synced_at"
     t.string "name"
+    t.text "original_description"
     t.integer "points"
     t.date "start_date"
     t.string "status"
