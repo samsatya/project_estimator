@@ -7,7 +7,7 @@ class Story < ApplicationRecord
   validates :points, presence: true, inclusion: { in: [1, 2, 3, 5, 8, 13, 21] }, allow_nil: false
 
   FIBONACCI_POINTS = [1, 2, 3, 5, 8, 13, 21].freeze
-  TASK_TYPES = %w[UI Backend Infra Test].freeze
+  TASK_TYPES = %w[development testing design research documentation UI Backend Infra Test].freeze
 
   validates :task_type, inclusion: { in: TASK_TYPES }, allow_nil: true
 

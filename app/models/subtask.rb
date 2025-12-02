@@ -4,7 +4,7 @@ class Subtask < ApplicationRecord
 
   validates :name, presence: true
   validates :estimated_hours, numericality: { greater_than: 0 }, allow_nil: true
-  validates :task_type, inclusion: { in: %w[UI Backend Infra Test] }, allow_nil: true
+  validates :task_type, inclusion: { in: %w[development testing design research documentation UI Backend Infra Test] }, allow_nil: true
 
-  TASK_TYPES = %w[UI Backend Infra Test].freeze
+  TASK_TYPES = %w[development testing design research documentation UI Backend Infra Test].freeze
 end

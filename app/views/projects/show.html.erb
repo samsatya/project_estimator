@@ -114,6 +114,89 @@
     </div>
   </div>
 
+  <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+    <h2 class="text-xl font-semibold mb-4">Team Member Allocation</h2>
+    <% allocation_data = @calculator.by_team_member %>
+    <% if allocation_data.any? %>
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Team Member</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+              <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Story Points</th>
+              <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Story Hours</th>
+              <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Subtask Hours</th>
+              <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total Hours</th>
+              <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">% of Project</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <% allocation_data.each do |user_id, data| %>
+              <tr>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span class="font-medium text-gray-900"><%= data[:user].name %></span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <%= data[:user].primary_strength %>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">
+                  <span class="bg-blue-100 text-blue-800 font-semibold px-2 py-1 rounded"><%= data[:story_points] %></span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">
+                  <%= data[:story_hours] %>h
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">
+                  <%= data[:subtask_hours] %>h
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-semibold text-gray-900">
+                  <%= data[:total_hours] %>h
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">
+                  <% percentage = @calculator.total_story_points > 0 ? (data[:story_points].to_f / @calculator.total_story_points * 100).round(1) : 0 %>
+                  <div class="flex items-center justify-end">
+                    <span class="mr-2"><%= percentage %>%</span>
+                    <div class="w-16 bg-gray-200 rounded-full h-2">
+                      <div class="bg-blue-600 h-2 rounded-full" style="width: <%= percentage %>%"></div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+          <tfoot class="bg-gray-50">
+            <tr>
+              <td class="px-6 py-3 text-left text-sm font-semibold text-gray-900" colspan="2">Total</td>
+              <td class="px-6 py-3 text-right text-sm font-semibold text-gray-900">
+                <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded"><%= allocation_data.values.sum { |d| d[:story_points] } %></span>
+              </td>
+              <td class="px-6 py-3 text-right text-sm font-semibold text-gray-900">
+                <%= allocation_data.values.sum { |d| d[:story_hours] } %>h
+              </td>
+              <td class="px-6 py-3 text-right text-sm font-semibold text-gray-900">
+                <%= allocation_data.values.sum { |d| d[:subtask_hours] } %>h
+              </td>
+              <td class="px-6 py-3 text-right text-sm font-semibold text-gray-900">
+                <%= allocation_data.values.sum { |d| d[:total_hours] } %>h
+              </td>
+              <td class="px-6 py-3 text-right text-sm font-semibold text-gray-900">
+                <% total_allocated = allocation_data.values.sum { |d| d[:story_points] } %>
+                <% unallocated = @calculator.total_story_points - total_allocated %>
+                <% if unallocated > 0 %>
+                  <span class="text-orange-600"><%= unallocated %> pts unassigned</span>
+                <% else %>
+                  100%
+                <% end %>
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    <% else %>
+      <p class="text-gray-500 text-sm">No team members assigned to this project yet. Add team members above to see their allocation.</p>
+    <% end %>
+  </div>
+
   <div class="mb-6">
     <h2 class="text-2xl font-bold text-gray-900 mb-4">Epics</h2>
     
