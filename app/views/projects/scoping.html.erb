@@ -1,0 +1,310 @@
+<div class="w-full">
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900"><%= @project.name %> - Scoping</h1>
+      <p class="text-gray-600 mt-2"><%= @project.description %></p>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <%= link_to "Back to Project", @project, class: "bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg" %>
+      <% if @project.in_scoping_phase? && @scoping_calculator.ready_to_complete? %>
+        <%= button_to "Complete Scoping", complete_scoping_project_path(@project), method: :post, class: "bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg", data: { confirm: "Complete scoping phase? You can reopen it later if needed." } %>
+      <% elsif !@project.in_scoping_phase? %>
+        <%= button_to "Reopen Scoping", reopen_scoping_project_path(@project), method: :post, class: "bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded-lg" %>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Phase Indicator -->
+  <div class="bg-white rounded-lg shadow-md p-4 mb-6">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center space-x-4">
+        <div class="flex items-center">
+          <div class="w-8 h-8 rounded-full flex items-center justify-center <%= @project.in_scoping_phase? ? 'bg-blue-600 text-white' : 'bg-green-600 text-white' %>">
+            <% if @project.in_scoping_phase? %>1<% else %>&#10003;<% end %>
+          </div>
+          <span class="ml-2 font-medium <%= @project.in_scoping_phase? ? 'text-blue-600' : 'text-green-600' %>">Scoping</span>
+        </div>
+        <div class="w-16 h-1 <%= @project.in_estimation_phase? || @project.phase == 'execution' ? 'bg-green-600' : 'bg-gray-300' %>"></div>
+        <div class="flex items-center">
+          <div class="w-8 h-8 rounded-full flex items-center justify-center <%= @project.in_estimation_phase? ? 'bg-blue-600 text-white' : (@project.phase == 'execution' ? 'bg-green-600 text-white' : 'bg-gray-300 text-gray-600') %>">
+            <% if @project.phase == 'execution' %>&#10003;<% else %>2<% end %>
+          </div>
+          <span class="ml-2 font-medium <%= @project.in_estimation_phase? ? 'text-blue-600' : (@project.phase == 'execution' ? 'text-green-600' : 'text-gray-500') %>">Estimation</span>
+        </div>
+        <div class="w-16 h-1 <%= @project.phase == 'execution' ? 'bg-green-600' : 'bg-gray-300' %>"></div>
+        <div class="flex items-center">
+          <div class="w-8 h-8 rounded-full flex items-center justify-center <%= @project.phase == 'execution' ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-600' %>">3</div>
+          <span class="ml-2 font-medium <%= @project.phase == 'execution' ? 'text-blue-600' : 'text-gray-500' %>">Execution</span>
+        </div>
+      </div>
+      <span class="text-sm text-gray-500">Current Phase: <strong class="text-gray-900"><%= @project.phase.titleize %></strong></span>
+    </div>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white rounded-lg shadow-md p-4">
+      <p class="text-sm text-gray-600">Total Scope Items</p>
+      <p class="text-2xl font-bold text-gray-900"><%= @scoping_calculator.completion_status[:total_scope_items] %></p>
+      <p class="text-xs text-gray-500"><%= @scoping_calculator.completion_status[:approved] %> approved</p>
+    </div>
+    <div class="bg-white rounded-lg shadow-md p-4">
+      <p class="text-sm text-gray-600">Rough Hours Estimate</p>
+      <p class="text-2xl font-bold text-gray-900"><%= @scoping_calculator.total_rough_hours %></p>
+      <p class="text-xs text-gray-500">~<%= @scoping_calculator.rough_weeks %> weeks</p>
+    </div>
+    <div class="bg-white rounded-lg shadow-md p-4">
+      <p class="text-sm text-gray-600">Open Assumptions</p>
+      <p class="text-2xl font-bold <%= @scoping_calculator.completion_status[:open_assumptions] > 0 ? 'text-orange-600' : 'text-green-600' %>"><%= @scoping_calculator.completion_status[:open_assumptions] %></p>
+      <p class="text-xs text-gray-500"><%= @scoping_calculator.completion_status[:open_assumptions] > 0 ? 'Must resolve to complete' : 'All resolved' %></p>
+    </div>
+    <div class="bg-white rounded-lg shadow-md p-4">
+      <p class="text-sm text-gray-600">Active Risks</p>
+      <p class="text-2xl font-bold <%= @scoping_calculator.completion_status[:high_risks] > 0 ? 'text-red-600' : 'text-gray-900' %>"><%= @scoping_calculator.completion_status[:active_risks] %></p>
+      <p class="text-xs text-gray-500"><%= @scoping_calculator.completion_status[:high_risks] %> high priority</p>
+    </div>
+  </div>
+
+  <% unless @project.in_scoping_phase? %>
+    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+      <p class="text-yellow-800">Scoping phase is complete. Scope items are read-only. You can reopen scoping if needed.</p>
+    </div>
+  <% end %>
+
+  <!-- Scope Items Section -->
+  <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-xl font-semibold">Scope Items (Features)</h2>
+      <% if @project.in_scoping_phase? %>
+        <%= link_to "Add Scope Item", new_project_scope_item_path(@project), class: "bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg" %>
+      <% end %>
+    </div>
+
+    <% if @scope_items.any? %>
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Size</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Hours</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Priority</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <% @scope_items.each do |item| %>
+              <tr class="<%= item.converted? ? 'bg-gray-50' : '' %>">
+                <td class="px-4 py-4">
+                  <div>
+                    <span class="font-medium text-gray-900"><%= item.name %></span>
+                    <% if item.description.present? %>
+                      <p class="text-sm text-gray-500 truncate max-w-xs"><%= item.description %></p>
+                    <% end %>
+                    <% if item.assumptions.any? || item.risks.any? %>
+                      <div class="flex gap-2 mt-1">
+                        <% if item.assumptions.any? %>
+                          <span class="text-xs text-orange-600"><%= item.assumptions.count %> assumptions</span>
+                        <% end %>
+                        <% if item.risks.any? %>
+                          <span class="text-xs text-red-600"><%= item.risks.count %> risks</span>
+                        <% end %>
+                      </div>
+                    <% end %>
+                  </div>
+                </td>
+                <td class="px-4 py-4">
+                  <% if item.tshirt_size %>
+                    <span class="bg-blue-100 text-blue-800 text-sm font-semibold px-2 py-1 rounded"><%= item.tshirt_size %></span>
+                  <% else %>
+                    <span class="text-gray-400">-</span>
+                  <% end %>
+                </td>
+                <td class="px-4 py-4 text-sm text-gray-900">
+                  <%= item.rough_hours || '-' %><%= 'h' if item.rough_hours %>
+                </td>
+                <td class="px-4 py-4">
+                  <% if item.category %>
+                    <span class="bg-purple-100 text-purple-800 text-xs font-semibold px-2 py-1 rounded"><%= item.category %></span>
+                  <% else %>
+                    <span class="text-gray-400">-</span>
+                  <% end %>
+                </td>
+                <td class="px-4 py-4">
+                  <% if item.priority %>
+                    <span class="<%= item.priority == 'high' ? 'bg-red-100 text-red-800' : (item.priority == 'medium' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800') %> text-xs font-semibold px-2 py-1 rounded"><%= item.priority %></span>
+                  <% else %>
+                    <span class="text-gray-400">-</span>
+                  <% end %>
+                </td>
+                <td class="px-4 py-4">
+                  <span class="<%= item.status == 'approved' ? 'bg-green-100 text-green-800' : (item.status == 'converted' ? 'bg-blue-100 text-blue-800' : (item.status == 'rejected' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800')) %> text-xs font-semibold px-2 py-1 rounded"><%= item.status %></span>
+                  <% if item.converted? %>
+                    <span class="text-xs text-gray-500 block mt-1">→ <%= item.converted_to_epic.name %></span>
+                  <% end %>
+                </td>
+                <td class="px-4 py-4">
+                  <div class="flex space-x-2">
+                    <% if @project.in_scoping_phase? %>
+                      <%= link_to "Edit", edit_project_scope_item_path(@project, item), class: "text-blue-600 hover:text-blue-800 text-sm" %>
+                      <% if item.status == 'approved' && !item.converted? %>
+                        <%= button_to "Convert", convert_to_epic_project_scope_item_path(@project, item), method: :post, class: "text-green-600 hover:text-green-800 text-sm", data: { confirm: "Convert to epic?" } %>
+                      <% end %>
+                      <%= button_to "Delete", project_scope_item_path(@project, item), method: :delete, class: "text-red-600 hover:text-red-800 text-sm", data: { confirm: "Delete this scope item?" } %>
+                    <% else %>
+                      <span class="text-gray-400 text-sm">Read-only</span>
+                    <% end %>
+                  </div>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <p class="text-gray-500 text-center py-8">No scope items yet. Add your first feature to begin scoping.</p>
+    <% end %>
+
+    <!-- Hours by Size breakdown -->
+    <% if @scope_items.any? %>
+      <div class="mt-6 pt-6 border-t">
+        <h3 class="text-lg font-medium mb-3">Estimate Breakdown by Size</h3>
+        <div class="grid grid-cols-4 gap-4">
+          <% @scoping_calculator.hours_by_size.each do |data| %>
+            <div class="text-center p-3 bg-gray-50 rounded">
+              <span class="text-2xl font-bold text-gray-900"><%= data[:size] %></span>
+              <p class="text-sm text-gray-600"><%= data[:count] %> items</p>
+              <p class="text-sm text-gray-600"><%= data[:hours] %>h</p>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Assumptions Section -->
+  <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-xl font-semibold">Assumptions</h2>
+      <%= link_to "Add Assumption", new_project_assumption_path(@project), class: "bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded-lg" %>
+    </div>
+
+    <% all_assumptions = @project.assumptions.includes(:scope_item) %>
+    <% if all_assumptions.any? %>
+      <div class="space-y-3">
+        <% all_assumptions.each do |assumption| %>
+          <div class="border rounded-lg p-4 <%= assumption.status == 'open' ? 'border-orange-200 bg-orange-50' : 'border-gray-200' %>">
+            <div class="flex justify-between items-start">
+              <div>
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="font-medium text-gray-900"><%= assumption.title %></span>
+                  <span class="<%= assumption.status == 'open' ? 'bg-orange-100 text-orange-800' : (assumption.status == 'validated' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800') %> text-xs font-semibold px-2 py-1 rounded"><%= assumption.status %></span>
+                </div>
+                <% if assumption.description.present? %>
+                  <p class="text-sm text-gray-600"><%= assumption.description %></p>
+                <% end %>
+                <% if assumption.scope_item %>
+                  <p class="text-xs text-gray-500 mt-1">Related to: <%= assumption.scope_item.name %></p>
+                <% end %>
+                <% if assumption.validation_notes.present? %>
+                  <p class="text-sm text-gray-600 mt-2 italic">Notes: <%= assumption.validation_notes %></p>
+                <% end %>
+              </div>
+              <div class="flex space-x-2">
+                <%= link_to "Edit", edit_project_assumption_path(@project, assumption), class: "text-blue-600 hover:text-blue-800 text-sm" %>
+                <%= button_to "Delete", project_assumption_path(@project, assumption), method: :delete, class: "text-red-600 hover:text-red-800 text-sm", data: { confirm: "Delete this assumption?" } %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <p class="text-gray-500 text-center py-4">No assumptions documented yet.</p>
+    <% end %>
+  </div>
+
+  <!-- Risks Section -->
+  <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-xl font-semibold">Risks</h2>
+      <%= link_to "Add Risk", new_project_risk_path(@project), class: "bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg" %>
+    </div>
+
+    <% all_risks = @project.risks.includes(:scope_item) %>
+    <% if all_risks.any? %>
+      <div class="space-y-3">
+        <% all_risks.each do |risk| %>
+          <div class="border rounded-lg p-4 <%= risk.likelihood == 'high' || risk.impact == 'high' ? 'border-red-200 bg-red-50' : 'border-gray-200' %>">
+            <div class="flex justify-between items-start">
+              <div>
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="font-medium text-gray-900"><%= risk.title %></span>
+                  <span class="<%= risk.status == 'identified' ? 'bg-yellow-100 text-yellow-800' : (risk.status == 'mitigated' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800') %> text-xs font-semibold px-2 py-1 rounded"><%= risk.status %></span>
+                </div>
+                <% if risk.description.present? %>
+                  <p class="text-sm text-gray-600"><%= risk.description %></p>
+                <% end %>
+                <div class="flex gap-4 mt-2 text-xs">
+                  <% if risk.likelihood %>
+                    <span class="text-gray-600">Likelihood: <strong class="<%= risk.likelihood == 'high' ? 'text-red-600' : '' %>"><%= risk.likelihood %></strong></span>
+                  <% end %>
+                  <% if risk.impact %>
+                    <span class="text-gray-600">Impact: <strong class="<%= risk.impact == 'high' ? 'text-red-600' : '' %>"><%= risk.impact %></strong></span>
+                  <% end %>
+                </div>
+                <% if risk.scope_item %>
+                  <p class="text-xs text-gray-500 mt-1">Related to: <%= risk.scope_item.name %></p>
+                <% end %>
+                <% if risk.mitigation_plan.present? %>
+                  <p class="text-sm text-gray-600 mt-2"><strong>Mitigation:</strong> <%= risk.mitigation_plan %></p>
+                <% end %>
+              </div>
+              <div class="flex space-x-2">
+                <%= link_to "Edit", edit_project_risk_path(@project, risk), class: "text-blue-600 hover:text-blue-800 text-sm" %>
+                <%= button_to "Delete", project_risk_path(@project, risk), method: :delete, class: "text-red-600 hover:text-red-800 text-sm", data: { confirm: "Delete this risk?" } %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <p class="text-gray-500 text-center py-4">No risks documented yet.</p>
+    <% end %>
+  </div>
+
+  <!-- Completion Checklist -->
+  <% if @project.in_scoping_phase? %>
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <h2 class="text-xl font-semibold mb-4">Scoping Completion Checklist</h2>
+      <div class="space-y-3">
+        <div class="flex items-center">
+          <% if @scoping_calculator.completion_status[:approved] > 0 %>
+            <span class="text-green-600 mr-2">&#10003;</span>
+          <% else %>
+            <span class="text-gray-400 mr-2">&#9675;</span>
+          <% end %>
+          <span class="<%= @scoping_calculator.completion_status[:approved] > 0 ? 'text-gray-900' : 'text-gray-500' %>">At least one approved scope item</span>
+        </div>
+        <div class="flex items-center">
+          <% if @scoping_calculator.completion_status[:open_assumptions] == 0 %>
+            <span class="text-green-600 mr-2">&#10003;</span>
+          <% else %>
+            <span class="text-orange-500 mr-2">&#9675;</span>
+          <% end %>
+          <span class="<%= @scoping_calculator.completion_status[:open_assumptions] == 0 ? 'text-gray-900' : 'text-gray-500' %>">All assumptions resolved (validated or invalidated)</span>
+        </div>
+      </div>
+      <% if @scoping_calculator.ready_to_complete? %>
+        <div class="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+          <p class="text-green-800">Ready to complete scoping! Click "Complete Scoping" to proceed to estimation.</p>
+        </div>
+      <% else %>
+        <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <p class="text-yellow-800">Complete the checklist items above before proceeding to estimation.</p>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</div>

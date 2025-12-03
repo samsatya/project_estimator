@@ -10,9 +10,22 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_12_01_125437) do
+ActiveRecord::Schema[8.1].define(version: 2025_12_02_105619) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "assumptions", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.bigint "project_id", null: false
+    t.bigint "scope_item_id"
+    t.string "status", default: "open"
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.text "validation_notes"
+    t.index ["project_id"], name: "index_assumptions_on_project_id"
+    t.index ["scope_item_id"], name: "index_assumptions_on_scope_item_id"
+  end
 
   create_table "epics", force: :cascade do |t|
     t.datetime "created_at", null: false
@@ -68,15 +81,50 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_01_125437) do
     t.string "jira_site_url"
     t.string "jira_username"
     t.string "name"
+    t.string "phase", default: "scoping"
     t.decimal "points_to_hours_conversion", precision: 5, scale: 2, default: "8.0"
     t.decimal "pr_review_time_percentage", precision: 5, scale: 2, default: "0.15"
     t.decimal "product_testing_time_percentage", precision: 5, scale: 2, default: "0.2"
+    t.datetime "scoping_completed_at"
+    t.text "scoping_notes"
     t.date "start_date"
     t.string "status", default: "planning"
     t.boolean "sync_enabled", default: false
     t.date "target_date"
     t.datetime "updated_at", null: false
     t.index ["jira_project_key"], name: "index_projects_on_jira_project_key"
+  end
+
+  create_table "risks", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.string "impact"
+    t.string "likelihood"
+    t.text "mitigation_plan"
+    t.bigint "project_id", null: false
+    t.bigint "scope_item_id"
+    t.string "status", default: "identified"
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.index ["project_id"], name: "index_risks_on_project_id"
+    t.index ["scope_item_id"], name: "index_risks_on_scope_item_id"
+  end
+
+  create_table "scope_items", force: :cascade do |t|
+    t.string "category"
+    t.bigint "converted_to_epic_id"
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.string "name", null: false
+    t.integer "position"
+    t.string "priority"
+    t.bigint "project_id", null: false
+    t.string "status", default: "draft"
+    t.string "tshirt_size"
+    t.datetime "updated_at", null: false
+    t.index ["converted_to_epic_id"], name: "index_scope_items_on_converted_to_epic_id"
+    t.index ["project_id", "position"], name: "index_scope_items_on_project_id_and_position"
+    t.index ["project_id"], name: "index_scope_items_on_project_id"
   end
 
   create_table "stories", force: :cascade do |t|
@@ -170,10 +218,16 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_01_125437) do
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
 
+  add_foreign_key "assumptions", "projects"
+  add_foreign_key "assumptions", "scope_items"
   add_foreign_key "epics", "projects"
   add_foreign_key "holidays", "users"
   add_foreign_key "project_teams", "projects"
   add_foreign_key "project_teams", "teams"
+  add_foreign_key "risks", "projects"
+  add_foreign_key "risks", "scope_items"
+  add_foreign_key "scope_items", "epics", column: "converted_to_epic_id"
+  add_foreign_key "scope_items", "projects"
   add_foreign_key "stories", "epics"
   add_foreign_key "stories", "users", column: "assigned_user_id"
   add_foreign_key "subtasks", "stories"

@@ -2,6 +2,7 @@ class StoriesController < ApplicationController
   before_action :set_project
   before_action :set_epic
   before_action :set_story, only: [:edit, :update, :destroy]
+  before_action :ensure_can_create_stories, only: [:new, :create]
 
   def new
     @story = @epic.stories.build
@@ -61,7 +62,14 @@ class StoriesController < ApplicationController
     @story = @epic.stories.find(params[:id])
   end
 
-      def story_params
-        params.require(:story).permit(:name, :description, :points, :assigned_user_id, :status, :estimated_hours, :task_type, :start_date, :end_date)
-      end
+  def story_params
+    params.require(:story).permit(:name, :description, :points, :assigned_user_id, :status, :estimated_hours, :task_type, :start_date, :end_date)
+  end
+
+  def ensure_can_create_stories
+    unless @project.can_create_stories?
+      redirect_to scoping_project_path(@project),
+                  alert: "Complete the scoping phase before creating stories."
+    end
+  end
 end

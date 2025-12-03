@@ -36,6 +36,16 @@ Rails.application.routes.draw do
         resources :subtasks, except: [:index, :show]
       end
     end
+
+    # Scoping resources
+    resources :scope_items, except: [:index, :show] do
+      member do
+        post :convert_to_epic
+      end
+    end
+    resources :assumptions, except: [:index, :show]
+    resources :risks, except: [:index, :show]
+
     member do
       get :dashboard
       get :export
@@ -50,6 +60,10 @@ Rails.application.routes.draw do
       delete :remove_team_member
       post :add_team
       delete :remove_team
+      # Scoping routes
+      get :scoping
+      post :complete_scoping
+      post :reopen_scoping
     end
   end
   

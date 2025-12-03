@@ -5,6 +5,7 @@
       <p class="text-gray-600 mt-2"><%= @project.description %></p>
     </div>
     <div class="flex flex-wrap gap-2">
+      <%= link_to "Scoping", scoping_project_path(@project), class: "bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-4 rounded-lg" %>
       <% if @project.jira_configured? %>
         <%= link_to "Jira Config", jira_config_project_path(@project), class: "bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded-lg" %>
         <%= button_to "Sync to Jira", sync_to_jira_project_path(@project), method: :post, class: "bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg", data: { confirm: "This will export all epics and stories to Jira. Continue?" } %>
@@ -19,6 +20,47 @@
       <%= link_to "Edit", edit_project_path(@project), class: "bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg" %>
     </div>
   </div>
+
+  <!-- Phase Indicator -->
+  <div class="bg-white rounded-lg shadow-md p-4 mb-6">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center space-x-4">
+        <div class="flex items-center">
+          <div class="w-8 h-8 rounded-full flex items-center justify-center <%= @project.in_scoping_phase? ? 'bg-blue-600 text-white' : 'bg-green-600 text-white' %>">
+            <% if @project.in_scoping_phase? %>1<% else %>&#10003;<% end %>
+          </div>
+          <span class="ml-2 font-medium <%= @project.in_scoping_phase? ? 'text-blue-600' : 'text-green-600' %>">Scoping</span>
+        </div>
+        <div class="w-16 h-1 <%= @project.in_estimation_phase? || @project.phase == 'execution' ? 'bg-green-600' : 'bg-gray-300' %>"></div>
+        <div class="flex items-center">
+          <div class="w-8 h-8 rounded-full flex items-center justify-center <%= @project.in_estimation_phase? ? 'bg-blue-600 text-white' : (@project.phase == 'execution' ? 'bg-green-600 text-white' : 'bg-gray-300 text-gray-600') %>">
+            <% if @project.phase == 'execution' %>&#10003;<% else %>2<% end %>
+          </div>
+          <span class="ml-2 font-medium <%= @project.in_estimation_phase? ? 'text-blue-600' : (@project.phase == 'execution' ? 'text-green-600' : 'text-gray-500') %>">Estimation</span>
+        </div>
+        <div class="w-16 h-1 <%= @project.phase == 'execution' ? 'bg-green-600' : 'bg-gray-300' %>"></div>
+        <div class="flex items-center">
+          <div class="w-8 h-8 rounded-full flex items-center justify-center <%= @project.phase == 'execution' ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-600' %>">3</div>
+          <span class="ml-2 font-medium <%= @project.phase == 'execution' ? 'text-blue-600' : 'text-gray-500' %>">Execution</span>
+        </div>
+      </div>
+      <span class="text-sm text-gray-500">Current Phase: <strong class="text-gray-900"><%= @project.phase.titleize %></strong></span>
+    </div>
+  </div>
+
+  <% if @project.in_scoping_phase? %>
+    <div class="bg-cyan-50 border border-cyan-200 rounded-lg p-4 mb-6">
+      <div class="flex justify-between items-center">
+        <div>
+          <h3 class="text-lg font-semibold text-cyan-900 mb-1">Scoping Phase Active</h3>
+          <p class="text-sm text-cyan-800">
+            Complete the scoping phase before creating stories.
+            <%= link_to "Go to Scoping", scoping_project_path(@project), class: "underline font-medium" %>
+          </p>
+        </div>
+      </div>
+    </div>
+  <% end %>
 
   <% if @project.jira_configured? %>
     <div class="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">

@@ -1,5 +1,5 @@
 class ProjectsController < ApplicationController
-  before_action :set_project, only: [:show, :edit, :update, :destroy, :dashboard, :add_team_member, :remove_team_member, :add_team, :remove_team, :export, :gantt_chart, :pivot_report, :jira_config, :update_jira_config, :test_jira_connection, :sync_to_jira, :sync_from_jira]
+  before_action :set_project, only: [:show, :edit, :update, :destroy, :dashboard, :add_team_member, :remove_team_member, :add_team, :remove_team, :export, :gantt_chart, :pivot_report, :jira_config, :update_jira_config, :test_jira_connection, :sync_to_jira, :sync_from_jira, :scoping, :complete_scoping, :reopen_scoping]
 
   def index
     @projects = Project.all.order(created_at: :desc)
@@ -174,6 +174,33 @@ class ProjectsController < ApplicationController
     @stories = @project.stories.includes(:epic, :assigned_user)
     @epics = @project.epics.ordered
     @users = @project.users
+  end
+
+  def scoping
+    @scope_items = @project.scope_items.ordered.includes(:assumptions, :risks, :converted_to_epic)
+    @project_assumptions = @project.assumptions.project_level
+    @project_risks = @project.risks.where(scope_item_id: nil)
+    @scoping_calculator = ScopingCalculator.new(@project)
+  end
+
+  def complete_scoping
+    if @project.can_advance_to_estimation?
+      if @project.advance_to_estimation!
+        redirect_to @project, notice: "Scoping phase completed. You can now create detailed estimates."
+      else
+        redirect_to scoping_project_path(@project), alert: "Failed to complete scoping phase."
+      end
+    else
+      redirect_to scoping_project_path(@project), alert: "Cannot complete scoping. Ensure you have approved scope items and no open assumptions."
+    end
+  end
+
+  def reopen_scoping
+    if @project.update(phase: "scoping", scoping_completed_at: nil)
+      redirect_to scoping_project_path(@project), notice: "Scoping phase reopened."
+    else
+      redirect_to @project, alert: "Failed to reopen scoping phase."
+    end
   end
 
   private
